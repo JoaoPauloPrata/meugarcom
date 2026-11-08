@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: 'qr',
     title: 'Cardápio digital',
-    text: 'Com a cara da sua casa: logo, cores e fotos. O cliente aponta a câmera para o QR code e pronto, sem baixar app.',
+    text: 'Com a cara da sua casa: logo, cores e fotos. O cliente aponta a câmera para o QR code ou aproxima o celular da tag NFC e pronto, sem baixar app.',
   },
   {
     icon: 'card',
@@ -63,13 +63,13 @@ const STEPS = [
   { n: '01', title: 'Envie seu cardápio', text: 'PDF, foto do cardápio impresso, link, planilha ou importação do seu PDV.' },
   { n: '02', title: 'A gente organiza', text: 'Pratos, preços, descrições e alérgenos viram um cardápio digital estruturado.' },
   { n: '03', title: 'Revise e personalize', text: 'Ajuste o que quiser, escolha o modelo, sua logo e suas cores. Publique.' },
-  { n: '04', title: 'QR code na mesa', text: 'Imprima, coloque nas mesas e o garçom de IA começa a atender na hora.' },
+  { n: '04', title: 'QR code ou NFC na mesa', text: 'Imprima o QR code ou cole a tag NFC nas mesas e o garçom de IA começa a atender na hora.' },
 ]
 
 const DIFFS = [
   { icon: 'globe', title: 'Fala como o cliente fala', text: '“Tem algo sem glúten?”, “qual é o mais pedido?”, “dá pra tirar a cebola?” — entende português do dia a dia, gíria e erro de digitação. E atende turista em inglês e espanhol.' },
   { icon: 'plug', title: 'Funciona com o seu PDV', text: 'Não precisa trocar de sistema. O Meu Garçom trabalha ao lado do caixa que você já usa.' },
-  { icon: 'phone', title: 'Sem app, sem cadastro', text: 'Abre direto no navegador do celular. Atrito zero para o cliente.' },
+  { icon: 'phone', title: 'Sem app, sem cadastro', text: 'Abre direto no navegador do celular, pelo QR code ou com um toque na tag NFC. Atrito zero para o cliente.' },
   { icon: 'shield', title: 'Responde só o que é verdade', text: 'Toda resposta vem do seu cardápio. Se a informação não existe, o garçom chama alguém da equipe.' },
 ]
 
@@ -88,7 +88,7 @@ const FAQ = [
   },
   {
     q: 'Quanto tempo leva para colocar no ar?',
-    a: 'A ideia é que você saia do cardápio em PDF para o QR code na mesa em cerca de 20 minutos.',
+    a: 'A ideia é que você saia do cardápio em PDF para o QR code ou a tag NFC na mesa em cerca de 20 minutos.',
   },
   {
     q: 'Quanto vai custar?',
@@ -173,7 +173,7 @@ export default function App() {
               Cada cliente <em>bem atendido</em>,<br /> mesmo com a casa cheia.
             </h1>
             <p className="lead">
-              Cardápio digital por QR code com um garçom de IA que tira dúvidas sobre pratos, ingredientes e alergias — direto do seu
+              Cardápio digital por QR code ou NFC com um garçom de IA que tira dúvidas sobre pratos, ingredientes e alergias — direto do seu
               cardápio real. Pedido, Pix e reservas na mesa, sem app.
             </p>
             <div className="hero-actions">
@@ -217,7 +217,7 @@ export default function App() {
           <div className="container">
             <div className="section-head reveal">
               <span className="eyebrow">Produto</span>
-              <h2>Tudo que acontece na mesa, num QR code.</h2>
+              <h2>Tudo que acontece na mesa, num QR code ou num toque.</h2>
               <p className="lead">Do “o que você recomenda?” até o Pix, o Meu Garçom cuida do caminho — e a sua equipe cuida das pessoas.</p>
             </div>
             <div className="features">
@@ -239,7 +239,7 @@ export default function App() {
           <div className="container">
             <div className="section-head reveal">
               <span className="eyebrow">Como funciona</span>
-              <h2>Do cardápio em PDF ao QR code na mesa em cerca de 20 minutos.</h2>
+              <h2>Do cardápio em PDF à mesa em cerca de 20 minutos.</h2>
             </div>
             <ol className="steps">
               {STEPS.map((s, i) => (
