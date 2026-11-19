@@ -134,7 +134,12 @@
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 16px;
+}
+/* Side-by-side fields share the row's top edge; stacked spacing only applies between rows. */
+.field-row > .form-field + .form-field {
+  margin-top: 0;
 }
 @media (max-width: 560px) {
   .field-row {
