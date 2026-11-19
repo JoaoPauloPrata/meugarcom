@@ -60,6 +60,12 @@ Provedor e modelo default ficam em `AiModelSettings` no banco (nunca hardcoded).
 API ficam em variáveis de ambiente/secrets, nunca no banco nem no repo. Ao implementar a
 parte Anthropic, carregue a skill `claude-api`.
 
+Os guardrails do chat ([guardrails.md](guardrails.md)) seguem a mesma divisão. As regras de
+negócio ficam no domínio (ex.: `ComboSuggestion` rejeita total acima de 120% do orçamento;
+`MenuItem.IsGlutenFree` só muda por ação manual). A validação de entrada e de saída do
+modelo fica em Application, no caso de uso do chat. O classificador de entrada é mais um
+plugin de IA em Infrastructure.
+
 ## Banco
 
 Postgres hospedado no Supabase. O schema compartilhado com o front fica em `supabase/`.

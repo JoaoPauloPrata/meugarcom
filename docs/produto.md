@@ -27,13 +27,17 @@ preparo, sempre com base no cardápio cadastrado pelo restaurante. Exemplos:
 - "A feijoada é apimentada?"
 - "Qual serve duas pessoas?"
 
-Fora do cardápio, o assistente recusa com educação e traz a conversa de volta.
+Fora do cardápio, o assistente recusa com educação e traz a conversa de volta. Ele só
+informa o que está explícito no cardápio, sem inferir pelo nome do prato ou pela receita
+tradicional. Regras completas em [guardrails.md](guardrails.md).
 
 ### Montagem de combos
 
 O cliente descreve o que quer e um orçamento, e o assistente monta uma combinação
 coerente dentro do valor. Exemplo: "Me sugira um combo de sushi para dois de 150 reais"
-→ o assistente propõe itens do cardápio que somam até R$ 150 e servem duas pessoas.
+→ o assistente propõe itens do cardápio que somam até R$ 150 e servem duas pessoas. Se não
+der, ele pode passar do orçamento em até 20% e avisa ("Não consegui com R$ 140, mas aqui
+vai uma opção por R$ 155"). Ver [guardrails.md](guardrails.md#4-combos-por-orçamento).
 
 ### Sugestões (upsell contextual)
 
@@ -61,8 +65,9 @@ Dentro do MVP:
 
 - Cadastro da conta, do restaurante e das unidades.
 - **Importação do cardápio** (PDF/imagem/planilha) com **ajustes manuais** depois:
-  categorias, itens, preços, descrições, ingredientes, atributos como "sem glúten",
-  "apimentado", "serve N pessoas".
+  categorias, itens, preços, descrições, ingredientes, atributos como "apimentado" e
+  "serve N pessoas". O **sem glúten** é um booleano marcado e revisado só manualmente; a
+  importação nunca o marca.
 - Configuração do modelo de IA padrão (ver "IA" abaixo).
 - Chat do cliente na mesa, via QR code ou NFC, sem login.
 - Assistente que responde só sobre o cardápio, monta combos por orçamento e faz sugestões
@@ -101,7 +106,9 @@ caminho secundário. Meta: "do PDF à mesa em cerca de 20 minutos".
   Application); OpenAI e Anthropic são duas implementações em Infrastructure, e um
   decorator/orquestrador faz a escolha e o fallback.
 - O assistente é restrito ao cardápio da unidade: o cardápio entra como contexto do
-  modelo e o prompt de sistema proíbe sair do assunto.
+  modelo e o prompt de sistema proíbe sair do assunto. O prompt sozinho não basta: os
+  guardrails (anti-alucinação, prompt injection, combos, escopo, idioma) são em camadas,
+  com validação em código, e estão em [guardrails.md](guardrails.md).
 
 ## Glossário de domínio (nomes para o código)
 
@@ -114,11 +121,11 @@ caminho secundário. Meta: "do PDF à mesa em cerca de 20 minutos".
 | Importação de cardápio | `MenuImport` | Processo de extrair o cardápio de um arquivo enviado, para revisão manual. |
 | Config. de IA | `AiModelSettings` | Provedor e modelo default (e override por restaurante), lidos do banco. |
 | Categoria | `MenuCategory` | Agrupamento de itens (pizzas, vinhos, sobremesas). |
-| Item | `MenuItem` | Prato/bebida com preço, descrição, ingredientes, atributos (sem glúten, apimentado, serve N). |
+| Item | `MenuItem` | Prato/bebida com preço, descrição, ingredientes, atributos (apimentado, serve N). `IsGlutenFree` é booleano marcado só manualmente. |
 | Mesa | `Table` | Ponto de acesso físico (QR/NFC) que identifica onde o cliente está. |
-| Conversa | `Conversation` | Sessão de chat de um cliente numa mesa. |
+| Conversa | `Conversation` | Sessão de chat de um cliente numa mesa. Guarda o idioma (`Language`) detectado na primeira mensagem. |
 | AI Waiter | `Waiter` / `Assistant` | O agente de IA, restrito ao cardápio do restaurante. |
-| Combo | `ComboSuggestion` | Conjunto de itens montado pelo assistente dentro de um orçamento. |
+| Combo | `ComboSuggestion` | Conjunto de itens montado pelo assistente dentro de um orçamento (no máximo 20% acima). |
 | Sugestão | `Upsell` | Acompanhamento oferecido em função do que o cliente escolheu. |
 | Pedido | `Order` | Só na modalidade 2+. |
 | Pagamento | `Payment` | Só na modalidade 3. |
@@ -131,6 +138,12 @@ caminho secundário. Meta: "do PDF à mesa em cerca de 20 minutos".
 | 2026-11-15 | Cobrança **por unidade**; hierarquia Conta → Restaurante → Unidade. |
 | 2026-11-15 | Cardápio entra por **importação** com **ajustes manuais** depois. |
 | 2026-11-15 | IA: **OpenAI** principal, **Anthropic** fallback, modelo default **configurável via banco**. |
+| 2026-11-18 | O assistente só informa o que está **explícito no cardápio**: nada inferido pelo nome do prato nem pela receita tradicional. |
+| 2026-11-18 | **Sem glúten** é um booleano (`IsGlutenFree`) marcado e revisado só manualmente; a importação nunca o marca. |
+| 2026-11-18 | Prompt injection e jailbreak: seguir obrigatoriamente o **OWASP Top 10 for LLM Applications** e os guias dos provedores. |
+| 2026-11-18 | Combo: se não fechar no orçamento, pode passar **no máximo 20%**, com aviso explícito ao cliente. |
+| 2026-11-18 | O assistente nunca promete nada fora do escopo. |
+| 2026-11-18 | Responde no **idioma da primeira mensagem** do cliente. |
 
 ## Perguntas em aberto
 
@@ -139,3 +152,10 @@ caminho secundário. Meta: "do PDF à mesa em cerca de 20 minutos".
 - Como o cardápio é passado ao modelo: contexto direto no prompt (simples, cabe para
   cardápios pequenos) ou busca por relevância (para cardápios grandes).
 - Override de modelo por restaurante é necessário no MVP ou só global?
+- Combo: abaixo do orçamento, o que conta como "próximo"? (ex.: só aceitar combos que usem
+  pelo menos 80% do valor antes de partir para os 20% acima.)
+- Os 20% do combo ficam fixos ou são configuráveis por unidade?
+- Além do sem glúten, entram outros booleanos revisados manualmente (vegano, sem lactose)?
+- Quais idiomas o catálogo de respostas padrão cobre (PT, EN, ES?), e o que fazer se o
+  cliente trocar de idioma no meio da conversa?
+- Valores dos limites de uso: tamanho da mensagem, rate limit, mensagens por conversa.

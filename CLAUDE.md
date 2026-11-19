@@ -23,6 +23,10 @@ e modelo default **configurável via banco** (nunca hardcoded).
 Detalhes, glossário de domínio e perguntas em aberto em `docs/produto.md`. **Não implementar
 nada das modalidades 2 e 3 (pedido, cozinha, pagamento) sem o usuário pedir.**
 
+**Guardrails do chat** (anti-alucinação, prompt injection, combos, escopo, idioma) estão em
+`docs/guardrails.md`, leitura obrigatória antes de mexer no assistente. O AI Waiter só
+informa o que está explícito no cardápio, nunca inferido pelo nome ou pela receita.
+
 ```
 apps/web/     front (Vite + React) — landing page e waitlist
 apps/api/     backend em .NET (C#)
