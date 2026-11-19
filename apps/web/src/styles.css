@@ -470,7 +470,7 @@ h3 {
 
 .phone {
   position: absolute;
-  left: 4%;
+  right: 8%;
   top: 24px;
   z-index: 2;
   width: 330px;
@@ -794,7 +794,7 @@ h3 {
 .dash {
   position: absolute;
   z-index: 3;
-  right: -16px;
+  left: 0;
   bottom: 72px;
   width: 236px;
   padding: 16px 18px 18px;
@@ -879,7 +879,7 @@ h3 {
 .demo-toggle {
   position: absolute;
   z-index: 4;
-  right: 0;
+  left: 0;
   bottom: 0;
   display: inline-grid;
   place-items: center;
@@ -900,8 +900,8 @@ h3 {
 .demo .hero-showcase {
   position: absolute;
   z-index: 3;
-  right: -2%;
-  top: -16px;
+  right: -48px;
+  top: -40px;
   width: 260px;
   height: 320px;
 }
@@ -924,9 +924,17 @@ h3 {
   top: 262px;
 }
 
+@media (max-width: 1320px) {
+  .demo .hero-showcase {
+    right: -8px;
+  }
+}
 @media (max-width: 1100px) {
   .demo {
     margin-top: 8px;
+  }
+  .demo .hero-showcase {
+    right: -64px;
   }
 }
 @media (max-width: 600px) {
@@ -936,6 +944,7 @@ h3 {
   }
   .phone {
     left: 0;
+    right: auto;
     top: 28px;
     width: min(340px, calc(100% - 20px));
     height: 590px;
@@ -960,6 +969,10 @@ h3 {
   .hero-showcase .float-chip--price {
     right: -2px;
     top: 104px;
+  }
+  .demo-toggle {
+    left: auto;
+    right: 0;
   }
 }
 
