@@ -137,8 +137,10 @@ function Header() {
           <a href="#como-funciona" onClick={close}>Como funciona</a>
           <a href="#planos" onClick={close}>Planos</a>
           <a href="#duvidas" onClick={close}>Dúvidas</a>
+          <a href="/login" className="nav-login-mobile" onClick={close}>Entrar</a>
           <a href="#lista" className="btn btn--primary btn--sm nav-cta-mobile" onClick={close}>Entrar na lista</a>
         </nav>
+        <a href="/login" className="header-login header-cta">Entrar</a>
         <a href="#lista" className="btn btn--primary btn--sm header-cta">Entrar na lista</a>
         <button
           type="button"
