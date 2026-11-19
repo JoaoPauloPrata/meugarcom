@@ -2,8 +2,9 @@
   "name": "@seugarcom/api",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
   "scripts": {
-    "dev": "echo \"backend ainda não implementado\" && exit 0"
+    "dev": "dotnet run --project src/MeuGarcom.Api --launch-profile http",
+    "build": "dotnet build",
+    "test": "dotnet test"
   }
 }

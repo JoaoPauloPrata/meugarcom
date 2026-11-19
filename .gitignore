@@ -7,3 +7,10 @@ build/
 *.log
 .DS_Store
 .claude/settings.local.json
+
+# .NET
+bin/
+obj/
+TestResults/
+*.user
+.vs/
