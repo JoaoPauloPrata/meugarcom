@@ -1,3 +1,4 @@
+using MeuGarcom.Domain.Accounts;
 using MeuGarcom.Domain.Ai;
 using MeuGarcom.Domain.Conversations;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ internal sealed class ConversationConfiguration : IEntityTypeConfiguration<Conve
     {
         builder.ToTable("conversations");
         builder.HasKey(c => c.Id);
+        builder.HasOne<Unit>().WithMany().HasForeignKey(c => c.UnitId);
+        builder.HasOne<DiningTable>().WithMany().HasForeignKey(c => c.DiningTableId).OnDelete(DeleteBehavior.SetNull);
         builder.Property(c => c.Status).HasConversion(EnumText<ConversationStatus>.Converter);
         builder.HasMany(c => c.Messages).WithOne().HasForeignKey(m => m.ConversationId);
         builder.Navigation(c => c.Messages).HasField("_messages");
@@ -36,6 +39,8 @@ internal sealed class GuardrailEventConfiguration : IEntityTypeConfiguration<Gua
     {
         builder.ToTable("guardrail_events");
         builder.HasKey(e => e.Id);
+        builder.HasOne<Unit>().WithMany().HasForeignKey(e => e.UnitId);
+        builder.HasOne<Conversation>().WithMany().HasForeignKey(e => e.ConversationId).OnDelete(DeleteBehavior.SetNull);
         builder.Property(e => e.Kind).HasConversion(EnumText<GuardrailEventKind>.Converter);
     }
 }
@@ -46,6 +51,7 @@ internal sealed class AiModelSettingsConfiguration : IEntityTypeConfiguration<Ai
     {
         builder.ToTable("ai_model_settings");
         builder.HasKey(s => s.Id);
+        builder.HasOne<Restaurant>().WithOne().HasForeignKey<AiModelSettings>(s => s.RestaurantId);
         builder.Property(s => s.PrimaryProvider).HasConversion(EnumText<AiProvider>.Converter);
         builder.Property(s => s.FallbackProvider).HasConversion(EnumText<AiProvider>.Converter);
         builder.Property(s => s.ClassifierProvider).HasConversion(EnumText<AiProvider>.Converter);

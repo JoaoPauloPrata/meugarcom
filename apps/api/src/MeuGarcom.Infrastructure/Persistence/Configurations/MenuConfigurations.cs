@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MeuGarcom.Domain.Accounts;
 using MeuGarcom.Domain.Menus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -13,6 +14,7 @@ internal sealed class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.ToTable("menus");
         builder.HasKey(m => m.Id);
         builder.HasIndex(m => m.UnitId).IsUnique();
+        builder.HasOne<Unit>().WithOne().HasForeignKey<Menu>(m => m.UnitId);
         builder.HasMany(m => m.Categories).WithOne().HasForeignKey(c => c.MenuId);
         builder.HasMany(m => m.Items).WithOne().HasForeignKey(i => i.MenuId);
         builder.Navigation(m => m.Categories).HasField("_categories");
@@ -50,6 +52,7 @@ internal sealed class MenuImportConfiguration : IEntityTypeConfiguration<MenuImp
     {
         builder.ToTable("menu_imports");
         builder.HasKey(i => i.Id);
+        builder.HasOne<Unit>().WithMany().HasForeignKey(i => i.UnitId);
         builder.Property(i => i.Status).HasConversion(EnumText<MenuImportStatus>.Converter);
         builder.Property(i => i.Draft)
             .HasColumnType("jsonb")
