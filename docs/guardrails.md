@@ -276,6 +276,26 @@ diz que não sabe com naturalidade e indica o garçom.
 - **Dados pessoais**: o assistente não pede dados pessoais. Os logs não guardam dados
   pessoais.
 
+## Status da implementação (2026-11-18)
+
+| Camada | Onde | Status |
+|---|---|---|
+| Limites de tamanho, mensagens por conversa, duração | `Conversation` (domínio) | feito |
+| Rate limit 10 msg/min por conversa | — | pendente (registrado) |
+| Filtro de padrões de injeção | `InjectionPatterns` | feito (chat e importação) |
+| Classificador de entrada + idioma | `InputGuard` (modelo pequeno) | feito; falha aberta se o classificador cair |
+| Cardápio como dado delimitado, refs por item | `MenuSnapshot`, `WaiterPrompt` | feito |
+| Saída estruturada (schema fixo) | `WaiterPrompt.Schema` | feito |
+| IDs citados, preços em R$, combo pela faixa | `OutputGuard` + `ComboSuggestion` | feito; total calculado no backend |
+| Atributos alimentares não confirmados | `OutputGuard` (heurística PT/EN/ES) | feito; **juiz LLM pendente** |
+| Promessas (desconto, pedido, prazo) e links | `OutputGuard` (heurística) | feito; juiz LLM pendente |
+| Vazamento do prompt | `OutputGuard` | feito |
+| Regenera 1 vez, depois resposta segura | `WaiterTurn` | feito |
+| Respostas fixas no idioma da conversa | `FixedReplies` | feito (PT, EN, ES) |
+| Monitoramento sem dados pessoais | `guardrail_events` | feito |
+| Front renderiza só texto | `ChatPage` | feito |
+| Suítes de alucinação e ataque | `MeuGarcom.IntegrationTests` | inicial (10 casos) |
+
 ## Fontes
 
 - [OWASP Top 10 for LLM Applications 2025: LLM01 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)

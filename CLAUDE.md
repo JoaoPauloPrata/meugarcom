@@ -68,8 +68,10 @@ aplicado. Se uma decisão fugir da skill, explique o motivo antes de implementar
 
 ## Front: skill `ui-ux-pro-max` (obrigatória)
 
-`apps/web/` usa Vite + React 19 e fala com o Supabase direto pelo client em
-`apps/web/src/lib/supabase.js`. Variáveis de ambiente em `apps/web/.env`
+`apps/web/` usa Vite + React 19 + React Router. Login/cadastro pelo Supabase Auth
+(`apps/web/src/lib/supabase.js`, `lib/auth.jsx`); todos os dados do app vêm da API .NET
+(`lib/api.js`). Só a waitlist da landing grava direto no Supabase. Rotas: `/login`, `/signup`,
+`/dashboard/*` (painel) e `/m/:code` (chat do cliente). Variáveis em `apps/web/.env`
 (modelo em `apps/web/.env.example`).
 
 **Toda alteração de frontend deve ser feita E validada usando a skill `ui-ux-pro-max`**
@@ -88,9 +90,13 @@ páginas, componentes, layout, responsividade, tipografia, cores, acessibilidade
 
 ```sh
 npm install        # instala todos os workspaces
-npm run dev        # sobe o front
+npm run dev        # sobe o front (http://localhost:5173)
+npm run dev:api    # sobe a API .NET (http://localhost:5080); requer apps/api/.env
 npm run build      # build do front
+npm run test:api   # testes da API (os de integração chamam a OpenAI)
 ```
+
+Schema do banco: migrations SQL em `supabase/migrations/`, aplicadas pelo MCP do Supabase.
 
 ## Git flow (obrigatório)
 
