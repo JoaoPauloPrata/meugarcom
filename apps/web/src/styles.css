@@ -794,10 +794,10 @@ h3 {
 .dash {
   position: absolute;
   z-index: 3;
-  left: 0;
-  bottom: 72px;
-  width: 236px;
-  padding: 16px 18px 18px;
+  left: -40px;
+  bottom: 56px;
+  width: 224px;
+  padding: 14px 16px 16px;
   border-radius: 20px;
   background: var(--dark);
   color: #fff;
@@ -812,7 +812,7 @@ h3 {
   margin-bottom: 6px;
 }
 .dash-head strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 .dash-head span {
@@ -827,14 +827,15 @@ h3 {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
   animation: count 0.5s var(--ease);
 }
 .dash-count small {
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.25;
   font-weight: 500;
   letter-spacing: 0;
   color: #c9ccd1;
@@ -847,17 +848,17 @@ h3 {
 }
 .dash-latest {
   display: grid;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
   background: rgb(255 255 255 / 0.07);
 }
 .dash-latest.fresh {
   animation: latest-in 0.55s var(--ease);
 }
 .dash-latest strong {
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.3;
 }
@@ -867,7 +868,8 @@ h3 {
   align-items: center;
   gap: 8px;
   color: #b8bdc4;
-  font-size: 12px;
+  font-size: 11.5px;
+  white-space: nowrap;
 }
 @keyframes latest-in {
   from {
@@ -879,7 +881,7 @@ h3 {
 .demo-toggle {
   position: absolute;
   z-index: 4;
-  left: 0;
+  left: -40px;
   bottom: 0;
   display: inline-grid;
   place-items: center;
@@ -900,33 +902,38 @@ h3 {
 .demo .hero-showcase {
   position: absolute;
   z-index: 3;
-  right: -48px;
-  top: -40px;
-  width: 260px;
-  height: 320px;
+  right: -76px;
+  top: -52px;
+  width: 210px;
+  height: 250px;
 }
 .hero-showcase .showcase-dish {
   left: 50%;
-  top: 34px;
-  width: 230px;
-  margin-left: -115px;
+  top: 28px;
+  width: 172px;
+  margin-left: -86px;
+}
+.hero-showcase .float-chip {
+  padding: 7px 13px;
+  gap: 6px;
+  font-size: 13px;
 }
 .hero-showcase .float-chip--photo {
-  left: -12px;
-  top: 4px;
+  left: -20px;
+  top: 0;
 }
 .hero-showcase .float-chip--price {
-  right: -16px;
-  top: 128px;
+  right: -24px;
+  top: 98px;
 }
 .hero-showcase .float-chip--ingredients {
-  left: 0;
-  top: 262px;
+  left: -4px;
+  top: 206px;
 }
 
 @media (max-width: 1320px) {
   .demo .hero-showcase {
-    right: -8px;
+    right: 4px;
   }
 }
 @media (max-width: 1100px) {
