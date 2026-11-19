@@ -31,7 +31,7 @@ export default function Overview() {
       <div className="page-head">
         <div>
           <h1>Visão geral</h1>
-          <p>{unit.name}</p>
+          <p>Resumo do atendimento · {unit.name}</p>
         </div>
       </div>
       <Alert>{error}</Alert>
@@ -42,17 +42,27 @@ export default function Overview() {
             <GettingStarted data={data} unit={unit} />
           )}
           <div className="kpis">
-            <Kpi label="Conversas hoje" value={data.conversationsToday} />
-            <Kpi label="Perguntas ao garçom hoje" value={data.questionsToday} />
-            <Kpi label="Itens no cardápio" value={data.menuItems} />
-            <Kpi label="Mesas" value={data.tables} />
+            <Kpi label="Conversas hoje" value={data.conversationsToday} icon="chat" />
+            <Kpi label="Perguntas hoje" value={data.questionsToday} icon="sparkles" tone="sage" />
+            <Kpi label="Itens no cardápio" value={data.menuItems} icon="book" tone="ink" />
+            <Kpi label="Mesas" value={data.tables} icon="qr" tone="cool" />
           </div>
           <div className="overview-grid">
             <section className="card" aria-labelledby="by-hour-title">
-              <h2 id="by-hour-title">Perguntas por hora (últimos 7 dias)</h2>
+              <h2 id="by-hour-title">Perguntas por hora</h2>
+              <span className="card-sub">Últimos 7 dias</span>
               <QuestionsByHour values={data.questionsByHour} />
             </section>
-            <section className="card" aria-labelledby="dietary-title">
+            <section className="promo-card" aria-labelledby="promo-title">
+              <span className="promo-badge">Teste</span>
+              <h2 id="promo-title">Veja o garçom de IA em ação</h2>
+              <p>Abra o chat como um cliente e pergunte algo sobre o seu cardápio.</p>
+              <a className="btn btn--lg" href={`/m/${unit.publicCode}`} target="_blank" rel="noreferrer">
+                Abrir o chat
+                <Icon name="external" size={18} />
+              </a>
+            </section>
+            <section className="card card--wide" aria-labelledby="dietary-title">
               <h2 id="dietary-title">Restrições mais perguntadas (30 dias)</h2>
               <DietaryBars items={data.dietaryQuestions} />
               <p className="chart-caption">
@@ -67,10 +77,13 @@ export default function Overview() {
   )
 }
 
-function Kpi({ label, value }) {
+function Kpi({ label, value, icon, tone }) {
   return (
     <div className="kpi">
-      <span>{label}</span>
+      <span className={`kpi-icon ${tone ? `kpi-icon--${tone}` : ''}`}>
+        <Icon name={icon} size={16} strokeWidth={2} />
+      </span>
+      <span className="kpi-label">{label}</span>
       <strong>{value}</strong>
     </div>
   )
@@ -118,8 +131,14 @@ function QuestionsByHour({ values }) {
     return <p className="chart-caption">Ainda não há perguntas nos últimos 7 dias.</p>
   }
 
+  const peak = values.indexOf(max)
+
   return (
     <>
+      <strong className="card-figure">
+        {total}
+        <small>{total === 1 ? 'pergunta' : 'perguntas'} · pico às {peak}h</small>
+      </strong>
       <div className="bar-chart" onMouseLeave={() => setActive(null)}>
         {values.map((count, hour) => {
           const label = `${hour}h: ${count} ${count === 1 ? 'pergunta' : 'perguntas'}`
@@ -138,7 +157,7 @@ function QuestionsByHour({ values }) {
                   {label}
                 </span>
               )}
-              <span className="hour-bar" style={{ height: max ? `${(count / max) * 100}%` : 0 }} aria-hidden="true" />
+              <span className={`hour-bar ${hour === peak ? 'is-peak' : ''}`} style={{ height: max ? `${(count / max) * 100}%` : 0 }} aria-hidden="true" />
               <span className="bar-label" aria-hidden="true">
                 {hour}
               </span>

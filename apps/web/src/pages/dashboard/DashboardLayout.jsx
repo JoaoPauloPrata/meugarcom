@@ -80,24 +80,24 @@ export default function DashboardLayout() {
       {menuOpen && <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
       <aside className={`dash-sidebar ${menuOpen ? 'is-open' : ''}`} aria-label="Menu do painel">
         <NavLink to="/dashboard" className="dash-brand" aria-label="Meu Garçom — visão geral">
-          <img src="/logo-icon.png" alt="" width="64" height="26" />
+          <img src="/logo-icon.png" alt="" width="44" height="18" />
           <span>Meu Garçom</span>
         </NavLink>
         <nav className="dash-nav">
           {NAV.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end}>
-              <Icon name={item.icon} size={19} />
+              <Icon name={item.icon} size={20} />
               {item.label}
             </NavLink>
           ))}
         </nav>
-        <div className="dash-sidebar-foot">
-          <a className="btn btn--ghost btn--sm" href={`/m/${unit.publicCode}`} target="_blank" rel="noreferrer">
-            <Icon name="external" size={16} />
+        <div className="dash-sidebar-foot dash-nav">
+          <a href={`/m/${unit.publicCode}`} target="_blank" rel="noreferrer">
+            <Icon name="external" size={20} />
             Testar o chat
           </a>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onSignOut}>
-            <Icon name="logout" size={16} />
+          <button type="button" className="dash-nav-btn" onClick={onSignOut}>
+            <Icon name="logout" size={20} />
             Sair
           </button>
         </div>
@@ -112,13 +112,20 @@ export default function DashboardLayout() {
             aria-label="Abrir menu"
             aria-expanded={menuOpen}
           >
-            <Icon name="menu" />
+            <Icon name="hamburger" />
           </button>
-          <span className="restaurant-name">{workspace.restaurantName}</span>
+          <div className="restaurant-name">
+            <strong>{workspace.restaurantName}</strong>
+            <span>{unit.name}</span>
+          </div>
           <div className="topbar-actions">
-            <span className="avatar" title={user?.email} aria-label={`Conta: ${user?.email ?? ''}`}>
+            <span className="avatar" aria-hidden="true" title={user?.email}>
               {initials}
             </span>
+            <div className="topbar-user">
+              <strong>{workspace.ownerName || 'Minha conta'}</strong>
+              <span>{user?.email}</span>
+            </div>
           </div>
         </header>
         <main id="dash-content" className="dash-content">

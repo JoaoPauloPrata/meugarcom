@@ -97,7 +97,7 @@ export default function TablesPage() {
             </div>
           ) : (
             <div className="print-area">
-              <p className="print-only" style={{ fontFamily: 'var(--serif)', fontSize: 24, marginBottom: 16 }}>
+              <p className="print-only" style={{ fontFamily: 'var(--display)', fontSize: 24, marginBottom: 16 }}>
                 {workspace.restaurantName}
               </p>
               <div className="qr-grid">
