@@ -25,8 +25,9 @@ mensagem do cliente
       bloqueou → resposta padrão educada (não chama o modelo principal)
   → modelo principal: prompt de sistema + cardápio como DADOS + histórico,
     saída estruturada (schema fixo)
-  → output guardrail: itens existem, preços batem, combo ≤ 120% do orçamento,
-    sem promessas fora do escopo, sem vazar o prompt                [código]
+  → output guardrail: itens existem, preços batem, combo dentro da faixa do orçamento,
+    atributos alimentares só se marcados, sem promessas fora do escopo,
+    sem vazar o prompt                                              [código]
       falhou → regenera 1 vez → falhou de novo → resposta segura padrão
   → front renderiza a resposta como texto
 ```
@@ -84,21 +85,56 @@ conhecimento geral** sobre receitas, tradição culinária ou o significado do n
   o prompt. Em produção, um juiz (LLM-as-judge) avalia uma amostra de conversas reais para
   medir se as respostas se apoiam no cardápio.
 
-## 2. Sem glúten e restrições alimentares
+## 2. Atributos alimentares: vegano, sem lactose, sem glúten
 
-- O item tem um booleano **`MenuItem.IsGlutenFree`**, default `false`.
-- **Só uma pessoa marca esse campo**, na configuração do cardápio. A importação por IA
-  **nunca** marca `true`: depois de importar, a pessoa revisa e decide.
-- O assistente só diz que um item é sem glúten se `IsGlutenFree == true`. **Nunca deduz**
-  pelos ingredientes ("risoto não leva trigo, então é sem glúten" é proibido).
-- Se `IsGlutenFree == false`, o assistente **não afirma que contém glúten**. Diz que o item
-  não está marcado como sem glúten no cardápio.
-- Mesmo com `true`, o assistente **não garante a ausência de traços nem de contaminação
-  cruzada**. Quando o cliente menciona doença celíaca ou alergia, ele recomenda avisar o
-  garçom.
-- **Outras restrições** (lactose, vegano, frutos do mar, amendoim...) ainda não têm campo
-  no MVP. O assistente aplica a regra 1: relata só os ingredientes listados, não garante
-  nada e, se o cliente mencionar alergia, recomenda confirmar com a equipe.
+O item tem três booleanos, que aparecem como três checkboxes na configuração do cardápio:
+
+| Atributo | Campo | Default |
+|---|---|---|
+| Vegano | `MenuItem.IsVegan` | `false` |
+| Sem lactose | `MenuItem.IsLactoseFree` | `false` |
+| Sem glúten | `MenuItem.IsGlutenFree` | `false` |
+
+### Quem marca
+
+**Só uma pessoa marca esses campos**, na configuração do cardápio. A importação por IA
+**nunca** marca nenhum deles como `true`: depois de importar, a pessoa revisa e decide.
+
+### Como o assistente responde
+
+- **`true`**: o assistente pode afirmar. "Sim, o prato é vegano."
+- **`false`**: o assistente **não afirma nada a respeito**, nem que é, nem que não é. Ele
+  diz que não consegue confirmar isso pelo cardápio e **pede para o cliente chamar o
+  garçom** e tirar a dúvida.
+- **Nunca deduz** pelos ingredientes, pelo nome nem pelo senso comum. Exemplo: um suco de
+  maracujá com `IsVegan = false`. Mesmo que sucos de maracujá em geral sejam veganos, o
+  assistente **nunca** diz se esse suco é vegano ou não. Ele manda chamar o garçom.
+- **Perguntas de filtro** ("quais pratos são veganos?"): lista só os itens com `true`. Se
+  houver outros itens que podem interessar, diz que, para eles, a confirmação é com o
+  garçom, sem sugerir que são ou não são veganos.
+- Quando o cliente menciona alergia ou doença celíaca, o assistente recomenda avisar o
+  garçom mesmo para itens marcados com `true`. Ele não garante a ausência de traços nem de
+  contaminação cruzada.
+
+| Item | Pergunta | Certo | Errado |
+|---|---|---|---|
+| Moqueca de palmito, `IsVegan = true` | "É vegano?" | "Sim, a moqueca de palmito é vegana." | — |
+| Suco de maracujá, `IsVegan = false` | "O suco é vegano?" | "Não consigo confirmar isso pelo cardápio. Chame o garçom, que ele tira essa dúvida." | "Sim, é só fruta e água." / "Não é vegano." |
+| Risoto, `IsGlutenFree = false`, sem trigo nos ingredientes | "Tem glúten?" | "Não consigo confirmar isso pelo cardápio. O garçom pode tirar essa dúvida." | "Não leva trigo, então é sem glúten." |
+
+### Outras restrições
+
+Frutos do mar, amendoim e outras restrições não têm campo. O assistente aplica a regra 1:
+relata só os ingredientes listados, não garante nada e, se o cliente mencionar alergia,
+recomenda confirmar com o garçom.
+
+### Como garantir
+
+O cardápio enviado ao modelo traz os três campos explícitos, e o prompt traz os exemplos
+acima. No output guardrail, quando a resposta cita um item que tem o atributo `false` e
+fala desse atributo ("vegano", "sem lactose", "sem glúten" e variações em outros idiomas),
+a resposta é rejeitada. Essa checagem é feita pelo juiz da seção 1, porque uma lista de
+palavras não pega todos os idiomas.
 
 ## 3. Prompt injection e jailbreak
 
@@ -154,14 +190,21 @@ seja um texto ruim, nunca uma ação**.
 
 ### Regra
 
+Um combo é **próximo do orçamento** quando o total fica na faixa entre
+`orçamento × (1 − tolerância)` e `orçamento × (1 + tolerância)`. A tolerância é
+**configurável por unidade**, com **default de 20%**. Com o default, a faixa vai de 0,8 a
+1,2 vezes o orçamento: para R$ 150, de R$ 120 a R$ 180.
+
 1. O assistente monta um combo que atende ao pedido (tipo de comida, número de pessoas)
-   com **total ≤ orçamento**, o mais próximo possível do valor pedido.
-2. Se não der para chegar perto do orçamento, ele pode sugerir um combo que passe do
-   orçamento em **no máximo 20%**, e precisa dizer isso claramente:
+   **dentro da faixa e sem passar do orçamento** (de 0,8 a 1,0 vez o valor), o mais
+   próximo possível do valor pedido.
+2. Se não houver combo assim, ele pode sugerir um que passe do orçamento, **até o limite da
+   faixa** (1,2 vez o valor), e precisa dizer isso claramente:
    > "Não consegui montar um combo de sushi para dois com R$ 140, mas aqui vai uma opção
    > viável por R$ 155:"
-3. Se nem com 20% a mais for possível, ele diz que não conseguiu e pergunta se o cliente
-   quer ajustar o valor ou o pedido. **Nunca sugere nada acima de 120% do orçamento.**
+3. Se nenhum combo couber na faixa, ele diz que não conseguiu e pergunta se o cliente quer
+   ajustar o valor ou o pedido. **Nunca sugere nada fora da faixa**, nem acima nem abaixo.
+   Não completa o combo com itens só para atingir o valor mínimo.
 4. A regra 1 vale aqui também: o assistente só diz que o combo "serve dois" se os itens
    tiverem a porção informada no cardápio. Se não tiverem, avisa que o cardápio não
    informa as porções.
@@ -171,10 +214,11 @@ seja um texto ruim, nunca uma ação**.
 - O modelo escolhe os itens (por ID e quantidade), porque entende "sushi para dois". **O
   total é calculado pelo backend** com os preços do banco, e o valor exibido ao cliente
   vem desse cálculo, nunca do texto do modelo.
-- A regra dos 20% fica no domínio (`ComboSuggestion`): a criação falha com `Result` se
-  `total > orçamento × 1,20`, e o combo indica se ficou acima do orçamento (o que dispara a
-  mensagem de aviso). Se a regra rejeitar o combo, o modelo tenta de novo dentro do mesmo
-  ciclo de regeneração da seção 1.
+- A tolerância é configuração da unidade (`Unit.ComboBudgetTolerance`, default 20%).
+- A regra da faixa fica no domínio (`ComboSuggestion`): a criação recebe o orçamento e a
+  tolerância e falha com `Result` se o total ficar fora da faixa. O combo indica se ficou
+  acima do orçamento, o que dispara a mensagem de aviso. Se a regra rejeitar o combo, o
+  modelo tenta de novo dentro do mesmo ciclo de regeneração da seção 1.
 
 ## 5. Escopo e promessas
 
@@ -198,15 +242,19 @@ no cardápio.
 
 ## 6. Idioma
 
-- O assistente responde **no idioma da primeira mensagem do cliente** e mantém esse idioma
-  na conversa toda. O idioma é detectado na primeira mensagem e guardado na conversa
-  (`Conversation.Language`).
+- O assistente responde **no idioma da primeira mensagem do cliente**.
+- **Nenhum idioma é bloqueado por regra**: vale qualquer idioma que o modelo configurado
+  consiga responder.
+- Se o cliente trocar de idioma no meio da conversa, **o modelo decide** como responder. Não
+  há regra em código para isso.
 - Se a primeira mensagem for ambígua (só emoji, "ok", um número), o default é **PT-BR**.
 - **Nomes dos itens ficam como no cardápio.** Descrição e ingredientes podem ser
   traduzidos com fidelidade, sem acrescentar nada (a regra 1 vale também na tradução).
   Preços sempre em R$.
-- As respostas padrão (recusa, "não sei", resposta segura, bloqueio) ficam num catálogo de
-  mensagens por idioma, nunca escritas direto no código.
+- As respostas padrão fixas (bloqueio do input guardrail, resposta segura depois de duas
+  falhas de validação) não passam pelo modelo, então ficam num catálogo de mensagens,
+  nunca escritas direto no código. Para usá-las no idioma certo, o idioma da primeira
+  mensagem é guardado na conversa (`Conversation.Language`).
 
 ## 7. Tom de voz
 
@@ -220,8 +268,9 @@ diz que não sabe com naturalidade e indica o garçom.
   o abuso persistir, a conversa é encerrada com uma mensagem padrão sugerindo chamar o
   garçom.
 - **Limites** contra abuso e custo descontrolado (OWASP LLM10):
+  - **rate limit de 10 mensagens por minuto por conversa**. *Necessidade registrada; ainda
+    não entra na implementação.*
   - tamanho máximo da mensagem do cliente;
-  - rate limit por mesa e por IP;
   - número máximo de mensagens por conversa e duração máxima da sessão;
   - `max_tokens` na resposta do modelo.
 - **Dados pessoais**: o assistente não pede dados pessoais. Os logs não guardam dados

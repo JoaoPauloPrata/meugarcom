@@ -1,7 +1,7 @@
 # Documentação
 
 - [produto.md](produto.md) — o que é o AI Waiter, as 3 modalidades, escopo do MVP, glossário de domínio
-- [guardrails.md](guardrails.md) — regras do AI Waiter: anti-alucinação, sem glúten, prompt injection, combos, escopo, idioma
+- [guardrails.md](guardrails.md) — regras do AI Waiter: anti-alucinação, atributos alimentares, prompt injection, combos, escopo, idioma
 - [backend.md](backend.md) — arquitetura do backend .NET (Clean Architecture)
 
 Skills do projeto ficam em `.claude/skills/`:
