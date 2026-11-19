@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import DishShowcase from './DishShowcase'
 
 /* ------------------------------------------------------------------ */
 /* Dados do roteiro                                                    */
@@ -21,7 +22,7 @@ const BASE_QUESTIONS = [
   { q: 'Tem algo sem castanha?', meta: 'Mesa 9 · há 6 min', tag: 'Alergia' },
 ]
 
-const INITIAL_DASH = { count: 128, pct: 31, questions: BASE_QUESTIONS }
+const INITIAL_DASH = { count: 128, questions: BASE_QUESTIONS }
 
 /* Estado final estático (usado com prefers-reduced-motion) */
 const STATIC_STATE = {
@@ -37,7 +38,6 @@ const STATIC_STATE = {
   input: '',
   dash: {
     count: 129,
-    pct: 32,
     questions: [{ q: 'Algo leve, sem lactose', meta: 'Mesa 12 · agora', tag: 'Sem lactose', fresh: true }, ...BASE_QUESTIONS],
   },
 }
@@ -215,7 +215,6 @@ export default function Demo() {
     const ask = (question) =>
       setDash((d) => ({
         count: d.count + 1,
-        pct: question.tag === 'Sem lactose' ? d.pct + 1 : d.pct,
         questions: [{ ...question, fresh: true }, ...d.questions.map((q) => ({ ...q, fresh: false }))].slice(0, 3),
       }))
     const typeInto = async (text) => {
@@ -311,11 +310,11 @@ export default function Demo() {
   if (table > 0) lastTable.current = table
   const dishCount = lastTable.current === 1 ? '1 prato' : `${lastTable.current} pratos`
 
+  const latest = dash.questions[0]
+
   return (
     <div className="demo" ref={rootRef}>
-      <div className="demo-panel" aria-hidden="true">
-        <div className="demo-glow" />
-      </div>
+      <div className="demo-glow" aria-hidden="true" />
 
       <div className="phone" role="img" aria-label="Demonstração: cliente conversa com o garçom de IA pelo celular e adiciona pratos à mesa">
         <div className="phone-status">
@@ -357,54 +356,41 @@ export default function Demo() {
         </div>
       </div>
 
-      <svg className="demo-link" viewBox="0 0 220 90" fill="none" aria-hidden="true">
-        <path d="M2 86C60 86 80 20 140 12c30-4 54 2 76 6" stroke="currentColor" strokeWidth="1.4" strokeDasharray="4 5" />
-      </svg>
+      <DishShowcase className="hero-showcase" />
 
       <div className="dash" aria-label="Painel do restaurante">
         <div className="dash-head">
-          <strong>Bistrô Linho, hoje</strong>
-          <span>Seu painel</span>
+          <strong>Seu painel</strong>
+          <span>Hoje</span>
         </div>
-        <div className="dash-stats">
-          <div>
-            <span className="dash-label">Perguntas respondidas</span>
-            <span key={dash.count} className="dash-count">
-              {dash.count}
+        <span key={dash.count} className="dash-count">
+          {dash.count}
+          <small>perguntas respondidas</small>
+        </span>
+        {latest && (
+          <div key={latest.q + latest.meta} className={`dash-latest ${latest.fresh ? 'fresh' : ''}`}>
+            <strong>{latest.q}</strong>
+            <span>
+              {latest.meta}
+              <em className={`tag ${latest.tag === 'Sem lactose' ? 'tag--ok' : ''}`}>{latest.tag}</em>
             </span>
           </div>
-          <div className="dash-bar">
-            <div className="dash-bar-row">
-              <span>Sem lactose</span>
-              <span>{dash.pct}%</span>
-            </div>
-            <div className="bar">
-              <i style={{ transform: `scaleX(${dash.pct / 100})` }} />
-            </div>
-          </div>
-        </div>
-        <span className="dash-label">Acabaram de perguntar</span>
-        <ul className="dash-list">
-          {dash.questions.map((q) => (
-            <li key={q.q + q.meta} className={q.fresh ? 'fresh' : ''}>
-              <div>
-                <strong>{q.q}</strong>
-                <span>{q.meta}</span>
-              </div>
-              <em className={`tag ${q.tag === 'Sem lactose' ? 'tag--ok' : ''}`}>{q.tag}</em>
-            </li>
-          ))}
-        </ul>
+        )}
       </div>
 
       {!reduced && (
-        <button type="button" className="demo-toggle" onClick={() => setPaused((p) => !p)} aria-pressed={paused}>
+        <button
+          type="button"
+          className="demo-toggle"
+          onClick={() => setPaused((p) => !p)}
+          aria-pressed={paused}
+          aria-label={paused ? 'Continuar demonstração' : 'Pausar demonstração'}
+        >
           {paused ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" /></svg>
           ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" /></svg>
           )}
-          <span>{paused ? 'Continuar' : 'Pausar'} demonstração</span>
         </button>
       )}
     </div>

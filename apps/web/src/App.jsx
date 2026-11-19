@@ -169,22 +169,27 @@ export default function App() {
       <main id="conteudo">
         {/* HERO */}
         <section className="hero" id="topo">
-          <div className="container hero-inner">
-            <span className="eyebrow">Lista de espera aberta</span>
-            <h1>
-              Cada cliente <em>bem atendido</em>,<br /> mesmo com a casa cheia.
-            </h1>
-            <p className="lead">
-              Cardápio digital por QR code ou NFC com um garçom de IA que tira dúvidas sobre pratos, ingredientes e alergias — direto do seu
-              cardápio real. Pedido, Pix e reservas na mesa, sem app.
-            </p>
-            <div className="hero-actions">
-              <a href="#lista" className="btn btn--primary btn--lg">Entrar na lista de espera</a>
-              <a href="#como-funciona" className="btn btn--ghost btn--lg">Ver como funciona</a>
+          <div className="container hero-grid">
+            <div className="hero-copy">
+              <span className="eyebrow">Lista de espera aberta</span>
+              <h1>
+                Cada cliente <em>bem atendido</em>, mesmo com a casa cheia.
+              </h1>
+              <p className="lead">
+                Cardápio digital por QR code ou NFC com um garçom de IA que tira dúvidas sobre pratos, ingredientes e alergias — direto do seu
+                cardápio real. Pedido, Pix e reservas na mesa, sem app.
+              </p>
+              <ul className="hero-checks">
+                <li>Responde só com o que está no seu cardápio</li>
+                <li>Entende português do dia a dia, gíria e erro de digitação</li>
+                <li>No ar em cerca de 20 minutos</li>
+              </ul>
+              <div className="hero-actions">
+                <a href="#lista" className="btn btn--primary btn--lg">Entrar na lista de espera</a>
+                <a href="#como-funciona" className="btn btn--ghost btn--lg">Ver como funciona</a>
+              </div>
+              <p className="hero-note">Plano gratuito para 1 unidade · Sem cartão de crédito</p>
             </div>
-            <p className="hero-note">Plano gratuito para 1 unidade · Sem cartão de crédito</p>
-          </div>
-          <div className="container">
             <Demo />
           </div>
         </section>
