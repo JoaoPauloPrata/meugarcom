@@ -38,5 +38,12 @@ npm run dev:api     # na raiz: sobe em http://localhost:5080
 npm run test:api    # todos os testes
 ```
 
+## Deploy (Fly.io)
+
+App `meugarcom-api` (região `gru`), configurado em `fly.toml` + `Dockerfile`. Todo push na
+`main` que altera `apps/api/**` dispara `.github/workflows/deploy-api.yml`: roda os testes
+(sem os de integração) e faz `flyctl deploy --remote-only` com o secret `FLY_API_TOKEN`.
+Deploy manual: `flyctl deploy` a partir de `apps/api/`. Segredos: `flyctl secrets set -a meugarcom-api`.
+
 Todo o código é em inglês. Só textos exibidos ao usuário final são em PT-BR, isolados em
 `UserMessages`, `FixedReplies` e nos prompts. Ver `CLAUDE.md`.
