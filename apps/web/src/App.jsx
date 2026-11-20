@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Logo from './components/Logo'
 import Demo from './components/Demo'
-import WaitlistForm from './components/WaitlistForm'
 
 /* Ícones de traço (estilo Lucide) */
 const ICONS = {
@@ -73,6 +72,16 @@ const DIFFS = [
   { icon: 'shield', title: 'Responde só o que é verdade', text: 'Toda resposta vem do seu cardápio. Se a informação não existe, o garçom chama alguém da equipe.' },
 ]
 
+const PLAN_FEATURES = [
+  'Garçom de IA que responde só com base no seu cardápio',
+  'Combos por orçamento e sugestões de acompanhamento',
+  'Importação do cardápio por PDF, foto ou planilha',
+  'Edição de pratos, preços e descrições quando quiser',
+  'QR code para cada mesa',
+  'Histórico das conversas com os clientes',
+  'Painel com as perguntas e restrições mais frequentes',
+]
+
 const FAQ = [
   {
     q: 'O garçom de IA substitui minha equipe?',
@@ -92,7 +101,7 @@ const FAQ = [
   },
   {
     q: 'Quanto vai custar?',
-    a: 'Vai ter um plano gratuito com cardápio digital e garçom de IA para uma unidade. Os recursos avançados ficam no plano Pro — e quem entra na lista de espera garante condição especial de lançamento.',
+    a: 'O primeiro mês é grátis. Depois, o plano custa R$ 149,90 por mês por unidade.',
   },
 ]
 
@@ -138,10 +147,10 @@ function Header() {
           <a href="#planos" onClick={close}>Planos</a>
           <a href="#duvidas" onClick={close}>Dúvidas</a>
           <a href="/login" className="nav-login-mobile" onClick={close}>Entrar</a>
-          <a href="#lista" className="btn btn--primary btn--sm nav-cta-mobile" onClick={close}>Entrar na lista</a>
+          <a href="/signup" className="btn btn--primary btn--sm nav-cta-mobile" onClick={close}>Testar grátis</a>
         </nav>
         <a href="/login" className="header-login header-cta">Entrar</a>
-        <a href="#lista" className="btn btn--primary btn--sm header-cta">Entrar na lista</a>
+        <a href="/signup" className="btn btn--primary btn--sm header-cta">Testar grátis</a>
         <button
           type="button"
           className="menu-btn"
@@ -171,7 +180,7 @@ export default function App() {
         <section className="hero" id="topo">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <span className="eyebrow">Lista de espera aberta</span>
+              <span className="eyebrow">Garçom de IA para restaurantes</span>
               <h1>
                 Cada cliente <em>bem atendido</em>, mesmo com a casa cheia.
               </h1>
@@ -185,10 +194,10 @@ export default function App() {
                 <li>No ar em cerca de 20 minutos</li>
               </ul>
               <div className="hero-actions">
-                <a href="#lista" className="btn btn--primary btn--lg">Entrar na lista de espera</a>
+                <a href="/signup" className="btn btn--primary btn--lg">Testar grátis</a>
                 <a href="#como-funciona" className="btn btn--ghost btn--lg">Ver como funciona</a>
               </div>
-              <p className="hero-note">Plano gratuito para 1 unidade · Sem cartão de crédito</p>
+              <p className="hero-note">1º mês grátis · Depois, R$ 149,90/mês por unidade</p>
             </div>
             <Demo />
           </div>
@@ -285,58 +294,29 @@ export default function App() {
         <section className="section" id="planos">
           <div className="container">
             <div className="section-head reveal">
-              <span className="eyebrow">Planos</span>
-              <h2>Comece de graça. Cresça quando quiser.</h2>
+              <span className="eyebrow">Plano</span>
+              <h2>Teste grátis por um mês.</h2>
             </div>
-            <div className="plans">
-              <article className="plan reveal">
-                <h3>Gratuito</h3>
+            <article className="plan reveal">
+              <div className="plan-head">
+                <div className="plan-badge">1º mês grátis</div>
+                <h3>Meu Garçom</h3>
                 <p className="plan-price">R$ 0</p>
-                <p className="plan-sub">Para 1 unidade, para sempre</p>
-                <ul>
-                  <li>Cardápio digital com sua marca</li>
-                  <li>Garçom de IA</li>
-                  <li>QR code para as mesas</li>
-                  <li>Sem cartão de crédito</li>
-                </ul>
-              </article>
-              <article className="plan plan--pro reveal" style={{ '--d': '80ms' }}>
-                <div className="plan-badge">Condição de lançamento</div>
-                <h3>Pro</h3>
-                <p className="plan-price plan-price--soon">Preço especial para a lista</p>
-                <p className="plan-sub">Por unidade, sem limite de unidades</p>
-                <ul>
-                  <li>Tudo do Gratuito</li>
-                  <li>Pedido e pagamento por Pix na mesa</li>
-                  <li>Reservas com mapa do salão</li>
-                  <li>Perfis de clientes e campanhas</li>
-                  <li>Integração com WhatsApp</li>
-                  <li>Painel de dados completo</li>
-                </ul>
-                <a href="#lista" className="btn btn--light">Garantir minha vaga</a>
-              </article>
-            </div>
+                <p className="plan-sub">no primeiro mês</p>
+                <p className="plan-then">
+                  Depois, <strong>R$ 149,90/mês</strong> por unidade
+                </p>
+                <a href="/signup" className="btn btn--primary btn--lg">Testar grátis</a>
+              </div>
+              <ul>
+                {PLAN_FEATURES.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </article>
           </div>
         </section>
 
-        {/* LISTA DE ESPERA */}
-        <section className="section section--tint" id="lista">
-          <div className="container waitlist">
-            <div className="waitlist-copy reveal">
-              <span className="eyebrow">Lista de espera</span>
-              <h2>Seja um dos primeiros restaurantes com o Meu Garçom.</h2>
-              <p className="lead">Vamos liberar o acesso aos poucos, por ordem de inscrição. Quem entra agora ajuda a moldar o produto e garante condição especial.</p>
-              <ul className="checks">
-                <li>Acesso antecipado antes do lançamento</li>
-                <li>Configuração assistida com nosso time</li>
-                <li>Preço de lançamento no plano Pro</li>
-              </ul>
-            </div>
-            <div className="waitlist-card reveal" style={{ '--d': '80ms' }}>
-              <WaitlistForm />
-            </div>
-          </div>
-        </section>
 
         {/* FAQ */}
         <section className="section" id="duvidas">

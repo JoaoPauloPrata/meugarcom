@@ -28,7 +28,7 @@ nada das modalidades 2 e 3 (pedido, cozinha, pagamento) sem o usuário pedir.**
 informa o que está explícito no cardápio, nunca inferido pelo nome ou pela receita.
 
 ```
-apps/web/     front (Vite + React) — landing page e waitlist
+apps/web/     front (Vite + React) — landing page, painel e chat
 apps/api/     backend em .NET (C#)
 supabase/     schema SQL compartilhado (Postgres no Supabase)
 docs/         documentação do projeto
@@ -70,7 +70,7 @@ aplicado. Se uma decisão fugir da skill, explique o motivo antes de implementar
 
 `apps/web/` usa Vite + React 19 + React Router. Login/cadastro pelo Supabase Auth
 (`apps/web/src/lib/supabase.js`, `lib/auth.jsx`); todos os dados do app vêm da API .NET
-(`lib/api.js`). Só a waitlist da landing grava direto no Supabase. Rotas: `/login`, `/signup`,
+(`lib/api.js`). A landing não tem mais waitlist: os CTAs ("Testar grátis") levam para `/signup`. Rotas: `/login`, `/signup`,
 `/dashboard/*` (painel) e `/m/:code` (chat do cliente). Variáveis em `apps/web/.env`
 (modelo em `apps/web/.env.example`).
 

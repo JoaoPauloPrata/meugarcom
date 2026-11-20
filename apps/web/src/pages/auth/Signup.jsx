@@ -31,8 +31,8 @@ const PLANS = [
   {
     key: 'assistant',
     title: 'Assistente',
-    price: 'Grátis',
-    note: '1 unidade, sem cartão de crédito',
+    price: '1º mês grátis',
+    note: 'Depois, R$ 149,90/mês por unidade',
     available: true,
     features: [
       'Garçom de IA que conhece todo o seu cardápio',
