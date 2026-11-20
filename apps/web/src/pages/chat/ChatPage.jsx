@@ -309,9 +309,21 @@ function ComboCard({ combo }) {
   )
 }
 
+// Case- and accent-insensitive, so "acai" finds "Açaí".
+function normalizeSearch(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
 function MenuSheet({ code, onClose }) {
   const [menu, setMenu] = useState(null)
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+  const [categoryId, setCategoryId] = useState(null) // null = all categories
+  const filtersRef = useRef(null)
 
   useEffect(() => {
     publicApi
@@ -320,21 +332,111 @@ function MenuSheet({ code, onClose }) {
       .catch((e) => setError(e.message))
   }, [code])
 
+  const categories = (menu?.categories ?? []).filter((category) => category.items.length > 0)
+  const term = normalizeSearch(query)
+  const visible = categories
+    .filter((category) => categoryId === null || category.id === categoryId)
+    .map((category) => ({
+      ...category,
+      items: term
+        ? category.items.filter((item) => normalizeSearch(`${item.name} ${item.description ?? ''}`).includes(term))
+        : category.items,
+    }))
+    .filter((category) => category.items.length > 0)
+  const resultCount = visible.reduce((sum, category) => sum + category.items.length, 0)
+  const filtering = term !== '' || categoryId !== null
+
+  // Back to the top of the list when the category changes, so results start right under the filters.
+  useEffect(() => {
+    filtersRef.current?.closest('.panel-body')?.scrollTo({ top: 0 })
+  }, [categoryId])
+
+  function clearFilters() {
+    setQuery('')
+    setCategoryId(null)
+  }
+
   return (
     <Dialog title="Cardápio" variant="sheet" onClose={onClose}>
       {error && <p className="bubble bubble--error">{error}</p>}
       {!menu && !error && <Spinner label="Carregando cardápio" />}
-      {menu?.categories.length === 0 && <p>O cardápio ainda não foi publicado.</p>}
-      {menu?.categories.map((category) => (
-        <section key={category.id} className="sheet-category">
-          <h3>{category.name}</h3>
-          <div className="dish-cards">
-            {category.items.map((item) => (
-              <DishCard key={item.id} item={item} tags={itemTags(item)} />
-            ))}
+      {menu && categories.length === 0 && <p>O cardápio ainda não foi publicado.</p>}
+      {categories.length > 0 && (
+        <>
+          <div className="menu-filters" ref={filtersRef}>
+            <div className="menu-search">
+              <Icon name="search" size={18} />
+              <label htmlFor="menu-search-input" className="sr-only">
+                Buscar no cardápio
+              </label>
+              <input
+                id="menu-search-input"
+                type="search"
+                className="input"
+                placeholder="Buscar prato ou ingrediente"
+                value={query}
+                enterKeyHint="search"
+                autoComplete="off"
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              {query && (
+                <button type="button" className="menu-search-clear" onClick={() => setQuery('')} aria-label="Limpar busca">
+                  <Icon name="close" size={16} />
+                </button>
+              )}
+            </div>
+            {categories.length > 1 && (
+              <div className="menu-chips" role="group" aria-label="Filtrar por categoria">
+                <button
+                  type="button"
+                  className="menu-chip"
+                  aria-pressed={categoryId === null}
+                  onClick={() => setCategoryId(null)}
+                >
+                  Todos
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    className="menu-chip"
+                    aria-pressed={categoryId === category.id}
+                    onClick={() => setCategoryId(category.id)}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </section>
-      ))}
+
+          <p className="sr-only" aria-live="polite">
+            {filtering ? `${resultCount} ${resultCount === 1 ? 'item encontrado' : 'itens encontrados'}` : ''}
+          </p>
+
+          {visible.length === 0 ? (
+            <div className="menu-empty">
+              <p>
+                Nada encontrado{term ? ` para “${query.trim()}”` : ''}. Tente outra palavra ou veja todas as categorias.
+              </p>
+              <button type="button" className="btn btn--ghost" onClick={clearFilters}>
+                Limpar filtros
+              </button>
+            </div>
+          ) : (
+            visible.map((category) => (
+              <section key={category.id} className="sheet-category">
+                <h3>{category.name}</h3>
+                <div className="dish-cards">
+                  {category.items.map((item) => (
+                    <DishCard key={item.id} item={item} tags={itemTags(item)} />
+                  ))}
+                </div>
+              </section>
+            ))
+          )}
+        </>
+      )}
     </Dialog>
   )
 }

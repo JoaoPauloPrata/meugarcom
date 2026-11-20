@@ -2609,6 +2609,109 @@
 .sheet-category .dish-cards {
   max-width: none;
 }
+/* Sticky search + category filters at the top of the menu sheet */
+.menu-filters {
+  position: sticky;
+  top: -24px;
+  z-index: 2;
+  margin: -24px -24px 16px;
+  padding: 16px 24px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+.menu-search {
+  position: relative;
+}
+.menu-search > svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.menu-search .input {
+  padding-left: 42px;
+  padding-right: 48px;
+}
+.menu-search .input::-webkit-search-cancel-button {
+  display: none;
+}
+.menu-search-clear {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.menu-search-clear:hover {
+  color: var(--ink);
+}
+.menu-search-clear:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+}
+/* One scrollable row: wrapping would push the menu below the fold when there are many categories. */
+.menu-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -24px;
+  padding: 2px 24px;
+  scroll-padding-inline: 24px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.menu-chips::-webkit-scrollbar {
+  display: none;
+}
+.menu-chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--field-border);
+  background: var(--surface);
+  color: var(--ink-2);
+  font: 600 14px var(--sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.menu-chip:hover {
+  border-color: var(--ink-2);
+  color: var(--ink);
+}
+.menu-chip[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+.menu-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.menu-empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px 8px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.menu-empty p {
+  max-width: 34ch;
+}
 @media (prefers-reduced-motion: reduce) {
   .sheet-overlay,
   .sheet {
