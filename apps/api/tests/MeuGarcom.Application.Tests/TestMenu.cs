@@ -19,6 +19,7 @@ internal static class TestMenu
         Add(menu, mains.Id, new("Moqueca", null, "peixe, leite de coco, pimentão", 89.9m, 2, null, true));
         var palmito = Add(menu, mains.Id, new("Moqueca de palmito", null, "palmito, leite de coco, pimentão", 72m, 2, null, false));
         menu.SetItemDietaryAttributes(palmito.Id, new DietaryAttributes(true, true, true), now);
+        Add(menu, mains.Id, new("Torrada Sem Glúten", null, null, 10m, 1, null, false));
         Add(menu, mains.Id, new("Risoto de cogumelos", null, "arroz arbóreo, cogumelos, caldo de legumes", 38m, 1, null, false));
         Add(menu, drinks.Id, new("Suco de maracujá", null, "maracujá, água", 12m, null, "500 ml", false));
         Add(menu, drinks.Id, new("Coca-Cola lata", null, null, 7m, null, "350 ml", false));

@@ -8,6 +8,8 @@ namespace MeuGarcom.Application.Conversations.Waiter;
 /// ("i1", "i2"...) so the model cites them reliably; the backend maps refs back to ids, prices
 /// and flags for the output guardrail.
 /// </summary>
+public sealed record MenuGroup(string Name, IReadOnlyList<MenuItem> Items);
+
 public sealed class MenuSnapshot
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -19,11 +21,13 @@ public sealed class MenuSnapshot
 
     private MenuSnapshot(
         IReadOnlyDictionary<string, MenuItem> itemsByRef,
+        IReadOnlyList<MenuGroup> groups,
         decimal comboBudgetTolerance,
         string dataJson,
         string searchableText)
     {
         ItemsByRef = itemsByRef;
+        Groups = groups;
         ComboBudgetTolerance = comboBudgetTolerance;
         DataJson = dataJson;
         SearchableText = searchableText;
@@ -32,6 +36,9 @@ public sealed class MenuSnapshot
 
     public IReadOnlyDictionary<string, MenuItem> ItemsByRef { get; }
     public IReadOnlyDictionary<Guid, string> RefById { get; }
+
+    /// <summary>Categories with at least one available item, as sent to the model.</summary>
+    public IReadOnlyList<MenuGroup> Groups { get; }
     public decimal ComboBudgetTolerance { get; }
 
     /// <summary>Menu serialized as JSON, sent to the model inside &lt;menu_data&gt; tags.</summary>
@@ -46,17 +53,20 @@ public sealed class MenuSnapshot
     {
         var itemsByRef = new Dictionary<string, MenuItem>();
         var categories = new List<object>();
+        var groups = new List<MenuGroup>();
         var counter = 0;
 
         foreach (var category in (menu?.Categories ?? []).OrderBy(c => c.Position).ThenBy(c => c.Name))
         {
             var items = new List<object>();
+            var groupItems = new List<MenuItem>();
             foreach (var item in menu!.Items
                          .Where(i => i.CategoryId == category.Id && i.IsAvailable)
                          .OrderBy(i => i.Position).ThenBy(i => i.Name))
             {
                 var itemRef = $"i{++counter}";
                 itemsByRef[itemRef] = item;
+                groupItems.Add(item);
                 items.Add(new
                 {
                     Ref = itemRef,
@@ -70,8 +80,16 @@ public sealed class MenuSnapshot
                 });
             }
 
-            if (items.Count > 0)
-                categories.Add(new { Category = category.Name, Items = items });
+            if (items.Count == 0)
+                continue;
+
+            groups.Add(new MenuGroup(category.Name, groupItems));
+            categories.Add(new
+            {
+                Category = category.Name,
+                ConfirmedAttributeCounts = ConfirmedAttributeCounts(groupItems),
+                Items = items,
+            });
         }
 
         var data = new
@@ -86,8 +104,19 @@ public sealed class MenuSnapshot
         var searchable = string.Join('\n', itemsByRef.Values.Select(i =>
             $"{i.Name} {i.Description} {i.Ingredients} {i.Portion}")).ToLowerInvariant();
 
-        return new MenuSnapshot(itemsByRef, comboBudgetTolerance, JsonSerializer.Serialize(data, JsonOptions), searchable);
+        return new MenuSnapshot(itemsByRef, groups, comboBudgetTolerance, JsonSerializer.Serialize(data, JsonOptions), searchable);
     }
+
+    /// <summary>
+    /// How many items of a category have each attribute confirmed, computed here so the model
+    /// does not have to scan the whole menu to answer filter questions ("quais são sem glúten?").
+    /// </summary>
+    private static Dictionary<string, int> ConfirmedAttributeCounts(IReadOnlyList<MenuItem> items) => new()
+    {
+        ["vegan"] = items.Count(i => i.IsVegan),
+        ["lactose_free"] = items.Count(i => i.IsLactoseFree),
+        ["gluten_free"] = items.Count(i => i.IsGlutenFree),
+    };
 
     /// <summary>Only attributes explicitly marked true. Anything absent is "not informed", never "no".</summary>
     private static List<string> ConfirmedAttributes(MenuItem item)
