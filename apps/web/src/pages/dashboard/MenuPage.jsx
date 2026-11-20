@@ -108,28 +108,61 @@ export default function MenuPage() {
           </div>
         </div>
       ) : (
-        <>
-          <div className="tabs" role="tablist" aria-label="Categorias">
-            {menu.categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                role="tab"
-                className="tab"
-                aria-selected={c.id === activeId}
-                onClick={() => setActiveId(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
-            <button type="button" className="tab tab--add" onClick={() => setCategoryDialog({ mode: 'create' })}>
+        <div className="menu-layout">
+          <nav className="cat-nav" aria-label="Categorias">
+            <div className="cat-nav-head">Categorias</div>
+            <ul className="cat-nav-list">
+              {menu.categories.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="cat-nav-item"
+                    aria-current={c.id === activeId ? 'true' : undefined}
+                    onClick={() => setActiveId(c.id)}
+                    title={c.name}
+                  >
+                    <span className="cat-nav-name">{c.name}</span>
+                    <span className="cat-nav-count" aria-label={`${c.items.length} ${c.items.length === 1 ? 'prato' : 'pratos'}`}>
+                      {c.items.length}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="cat-nav-add" onClick={() => setCategoryDialog({ mode: 'create' })}>
               <Icon name="plus" size={16} />
+              Nova categoria
+            </button>
+          </nav>
+
+          <div className="cat-picker">
+            <label className="sr-only" htmlFor="category-picker">
               Categoria
+            </label>
+            <select
+              id="category-picker"
+              className="select"
+              value={activeId ?? ''}
+              onChange={(e) => setActiveId(e.target.value)}
+            >
+              {menu.categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.items.length})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn btn--ghost cat-picker-add"
+              onClick={() => setCategoryDialog({ mode: 'create' })}
+              aria-label="Nova categoria"
+            >
+              <Icon name="plus" size={18} />
             </button>
           </div>
 
           {active && (
-            <section role="tabpanel" aria-label={active.name}>
+            <section className="menu-panel" aria-label={active.name}>
               <div className="category-bar">
                 <h2>{active.name}</h2>
                 <div className="page-actions">
@@ -191,7 +224,7 @@ export default function MenuPage() {
               )}
             </section>
           )}
-        </>
+        </div>
       )}
 
       {editing && (
