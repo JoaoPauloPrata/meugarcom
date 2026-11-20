@@ -1688,6 +1688,30 @@
 }
 .item-main {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.item-text {
+  min-width: 0;
+}
+.item-thumb {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--linen);
+}
+.item-thumb--empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px dashed var(--field-border);
+}
+.item-row.is-unavailable .item-thumb {
+  opacity: 0.55;
 }
 .item-name {
   font-weight: 600;
@@ -1815,6 +1839,54 @@
 }
 .panel-foot .spacer {
   flex: 1;
+}
+.photo-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.photo-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.photo-field-label .optional {
+  font-weight: 400;
+  color: var(--muted);
+}
+.photo-field-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.photo-preview {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--linen);
+}
+.photo-preview--empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1.5px dashed var(--field-border);
+}
+.photo-field-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.photo-field-actions .hint,
+.photo-field-actions .field-error {
+  flex-basis: 100%;
+  font-size: 13px;
+}
+.photo-field-actions .hint {
+  color: var(--muted);
 }
 .fieldset {
   border: 1px solid var(--line);
@@ -2402,6 +2474,24 @@
 .dish-card p {
   font-size: 14px;
   color: var(--ink-2);
+}
+/* With a photo: thumbnail on the left, like the landing page preview. */
+.dish-card--photo {
+  grid-template-columns: 72px minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 10px 14px 10px 10px;
+  align-items: start;
+}
+.dish-card--photo > :not(.dish-card-photo) {
+  grid-column: 2;
+}
+.dish-card-photo {
+  grid-row: 1 / span 3;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--linen);
 }
 .combo-card {
   width: 100%;

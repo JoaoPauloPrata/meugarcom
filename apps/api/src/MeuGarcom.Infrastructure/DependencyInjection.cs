@@ -1,6 +1,7 @@
 using MeuGarcom.Application.Common.Interfaces;
 using MeuGarcom.Infrastructure.Ai;
 using MeuGarcom.Infrastructure.Persistence;
+using MeuGarcom.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,11 @@ public static class DependencyInjection
         services.AddScoped<IAiProviderClient>(sp => sp.GetRequiredService<AnthropicWaiterAssistant>());
         services.AddScoped<AiSettingsProvider>();
         services.AddScoped<IWaiterAssistant, FallbackWaiterAssistant>();
+
+        var supabaseUrl = config["SUPABASE_URL"]
+            ?? throw new InvalidOperationException("SUPABASE_URL is not configured.");
+        services.AddSingleton(new StorageOptions(supabaseUrl, config["SUPABASE_SERVICE_ROLE_KEY"]));
+        services.AddHttpClient<IMenuImageStorage, SupabaseMenuImageStorage>(http => http.Timeout = TimeSpan.FromSeconds(60));
 
         return services;
     }

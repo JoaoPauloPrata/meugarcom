@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeuGarcom.Application.Menus.Queries.GetMenu;
 
-public sealed class GetMenuHandler(IAppDbContext db, ICurrentUser currentUser)
+public sealed class GetMenuHandler(IAppDbContext db, ICurrentUser currentUser, IMenuImageStorage images)
     : IQueryHandler<GetMenuQuery, Result<MenuDto>>
 {
     public async ValueTask<Result<MenuDto>> Handle(GetMenuQuery query, CancellationToken ct)
     {
         var menu = await db.LoadOwnedMenuAsync(currentUser.UserId, query.UnitId, ct, tracking: false);
-        return menu is null ? MenuErrors.MenuNotFound : menu.ToDto();
+        return menu is null ? MenuErrors.MenuNotFound : menu.ToDto(images);
     }
 }

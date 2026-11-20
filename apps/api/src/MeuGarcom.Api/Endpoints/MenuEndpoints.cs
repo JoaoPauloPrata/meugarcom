@@ -7,8 +7,10 @@ using MeuGarcom.Application.Menus.Commands.DeleteCategory;
 using MeuGarcom.Application.Menus.Commands.DeleteMenuItem;
 using MeuGarcom.Application.Menus.Commands.ImportMenu;
 using MeuGarcom.Application.Menus.Commands.PublishMenuImport;
+using MeuGarcom.Application.Menus.Commands.RemoveMenuItemImage;
 using MeuGarcom.Application.Menus.Commands.RenameCategory;
 using MeuGarcom.Application.Menus.Commands.SetMenuItemAvailability;
+using MeuGarcom.Application.Menus.Commands.SetMenuItemImage;
 using MeuGarcom.Application.Menus.Commands.UpdateMenuItem;
 using MeuGarcom.Application.Menus.Queries.GetMenu;
 
@@ -44,13 +46,21 @@ public sealed class MenuEndpoints : IEndpointGroup
         group.MapDelete("/items/{itemId:guid}", async (Guid unitId, Guid itemId, ISender sender, CancellationToken ct) =>
             (await sender.Send(new DeleteMenuItemCommand(unitId, itemId), ct)).ToHttp());
 
-        // Bearer-token API (no cookies), so antiforgery does not apply to the upload.
+        // Bearer-token API (no cookies), so antiforgery does not apply to the uploads.
+        group.MapPut("/items/{itemId:guid}/image", async (Guid unitId, Guid itemId, IFormFile file, ISender sender, CancellationToken ct) =>
+            {
+                var command = new SetMenuItemImageCommand(unitId, itemId, ResolveContentType(file), await ReadAllAsync(file, ct));
+                return (await sender.Send(command, ct)).ToHttp();
+            })
+            .DisableAntiforgery()
+            .WithMetadata(new RequestSizeLimitAttributeMetadata(SetMenuItemImageValidator.MaxFileBytes + 64 * 1024));
+
+        group.MapDelete("/items/{itemId:guid}/image", async (Guid unitId, Guid itemId, ISender sender, CancellationToken ct) =>
+            (await sender.Send(new RemoveMenuItemImageCommand(unitId, itemId), ct)).ToHttp());
+
         group.MapPost("/imports", async (Guid unitId, IFormFile file, ISender sender, CancellationToken ct) =>
             {
-                await using var stream = file.OpenReadStream();
-                using var buffer = new MemoryStream();
-                await stream.CopyToAsync(buffer, ct);
-                var command = new ImportMenuCommand(unitId, file.FileName, ResolveContentType(file), buffer.ToArray());
+                var command = new ImportMenuCommand(unitId, file.FileName, ResolveContentType(file), await ReadAllAsync(file, ct));
                 return (await sender.Send(command, ct)).ToHttp();
             })
             .DisableAntiforgery()
@@ -58,6 +68,14 @@ public sealed class MenuEndpoints : IEndpointGroup
 
         group.MapPost("/imports/{importId:guid}/publish", async (Guid unitId, Guid importId, PublishRequest body, ISender sender, CancellationToken ct) =>
             (await sender.Send(new PublishMenuImportCommand(unitId, importId, body.Items), ct)).ToHttp());
+    }
+
+    private static async Task<byte[]> ReadAllAsync(IFormFile file, CancellationToken ct)
+    {
+        await using var stream = file.OpenReadStream();
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer, ct);
+        return buffer.ToArray();
     }
 
     /// <summary>Browsers often send spreadsheets as application/octet-stream; trust the extension then.</summary>

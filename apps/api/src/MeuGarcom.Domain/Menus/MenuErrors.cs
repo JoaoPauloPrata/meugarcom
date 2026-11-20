@@ -14,6 +14,7 @@ public static class MenuErrors
     public static readonly Error ItemPortionInvalid = Error.Validation("menu.item_portion_invalid");
     public static readonly Error ItemPriceInvalid = Error.Validation("menu.item_price_invalid");
     public static readonly Error ItemServesPeopleInvalid = Error.Validation("menu.item_serves_people_invalid");
+    public static readonly Error ItemImageInvalid = Error.Validation("menu.item_image_invalid");
     public static readonly Error TooManyItems = Error.Validation("menu.too_many_items");
     public static readonly Error ImportNotFound = Error.NotFound("menu.import_not_found");
     public static readonly Error ImportNotDraft = Error.Conflict("menu.import_not_draft");

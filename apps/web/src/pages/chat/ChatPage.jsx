@@ -260,8 +260,22 @@ function QuickReplies({ options, onPick }) {
 }
 
 function DishCard({ item, tags }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const showImage = item.imageUrl && !imageFailed
   return (
-    <article className="dish-card">
+    <article className={`dish-card ${showImage ? 'dish-card--photo' : ''}`}>
+      {showImage && (
+        <img
+          className="dish-card-photo"
+          src={item.imageUrl}
+          alt=""
+          width="72"
+          height="72"
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageFailed(true)}
+        />
+      )}
       <div className="dish-card-top">
         <h3>{item.name}</h3>
         <span className="dish-price">{formatBRL(item.price)}</span>

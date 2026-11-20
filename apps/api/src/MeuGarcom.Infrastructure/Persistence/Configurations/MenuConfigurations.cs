@@ -40,6 +40,7 @@ internal sealed class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Price).HasPrecision(10, 2);
         builder.Property(i => i.ServesPeople).HasColumnType("smallint");
+        builder.Property(i => i.ImagePath).HasMaxLength(MenuItem.MaxImagePathLength);
         builder.Ignore(i => i.Dietary);
     }
 }

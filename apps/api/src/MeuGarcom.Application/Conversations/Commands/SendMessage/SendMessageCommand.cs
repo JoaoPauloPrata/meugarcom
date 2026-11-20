@@ -24,7 +24,8 @@ public sealed record ChatItemDto(
     string? Description,
     string? Portion,
     int? ServesPeople,
-    IReadOnlyList<string> Tags);
+    IReadOnlyList<string> Tags,
+    string? ImageUrl);
 
 /// <param name="Total">Computed by the backend from stored prices, never by the model.</param>
 /// <param name="Notice">Explicit warning when the total is above the budget.</param>

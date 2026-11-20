@@ -195,14 +195,24 @@ export default function MenuPage() {
                   {active.items.map((item) => (
                     <div key={item.id} className={`item-row ${item.isAvailable ? '' : 'is-unavailable'}`}>
                       <div className="item-main">
-                        <div className="item-name">{item.name}</div>
-                        <div className="item-meta">
-                          <span className="item-price">{formatBRL(item.price)}</span>
-                          {itemTags(item).map((tag) => (
-                            <span key={tag} className={`diet-tag ${tag === 'spicy' ? 'diet-tag--spicy' : ''}`}>
-                              {DIETARY_LABELS[tag]}
-                            </span>
-                          ))}
+                        {item.imageUrl ? (
+                          <img className="item-thumb" src={item.imageUrl} alt="" width="48" height="48" loading="lazy" decoding="async" />
+                        ) : (
+                          <span className="item-thumb item-thumb--empty" title="Sem foto">
+                            <Icon name="image" size={18} />
+                            <span className="sr-only">Sem foto</span>
+                          </span>
+                        )}
+                        <div className="item-text">
+                          <div className="item-name">{item.name}</div>
+                          <div className="item-meta">
+                            <span className="item-price">{formatBRL(item.price)}</span>
+                            {itemTags(item).map((tag) => (
+                              <span key={tag} className={`diet-tag ${tag === 'spicy' ? 'diet-tag--spicy' : ''}`}>
+                                {DIETARY_LABELS[tag]}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       <div className="item-availability">

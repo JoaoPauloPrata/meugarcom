@@ -31,6 +31,7 @@ public static class UserMessages
         ["menu.item_portion_invalid"] = "A porção deve ter até 60 caracteres.",
         ["menu.item_price_invalid"] = "Informe um preço válido, com até 2 casas decimais.",
         ["menu.item_serves_people_invalid"] = "\"Serve quantas pessoas\" deve ficar entre 1 e 50.",
+        ["menu.item_image_invalid"] = "Envie uma foto JPG, PNG ou WEBP de até 5 MB.",
         ["menu.too_many_items"] = "O cardápio atingiu o limite de 600 itens.",
         ["menu.import_not_found"] = "Importação não encontrada.",
         ["menu.import_not_draft"] = "Esta importação já foi publicada ou descartada.",

@@ -5,6 +5,8 @@ namespace MeuGarcom.Domain.Menus;
 /// <summary>Dish or drink. Mutated only through its <see cref="Menu"/> aggregate.</summary>
 public sealed class MenuItem : Entity
 {
+    public const int MaxImagePathLength = 300;
+
     private MenuItem() { }
 
     public Guid MenuId { get; private set; }
@@ -27,6 +29,9 @@ public sealed class MenuItem : Entity
     public bool IsGlutenFree { get; private set; }
 
     public bool IsAvailable { get; private set; }
+
+    /// <summary>Optional photo, as a path inside the image storage (not a URL).</summary>
+    public string? ImagePath { get; private set; }
     public int Position { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -72,6 +77,12 @@ public sealed class MenuItem : Entity
         IsVegan = dietary.IsVegan;
         IsLactoseFree = dietary.IsLactoseFree;
         IsGlutenFree = dietary.IsGlutenFree;
+        UpdatedAt = now;
+    }
+
+    internal void SetImage(string? imagePath, DateTimeOffset now)
+    {
+        ImagePath = imagePath;
         UpdatedAt = now;
     }
 

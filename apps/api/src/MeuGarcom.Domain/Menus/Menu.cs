@@ -136,6 +136,21 @@ public sealed class Menu : Entity
         return Result.Success();
     }
 
+    /// <summary>Sets or clears (null) the item photo. Returns the previous path so it can be deleted.</summary>
+    public Result<string?> SetItemImage(Guid itemId, string? imagePath, DateTimeOffset now)
+    {
+        var item = _items.FirstOrDefault(i => i.Id == itemId);
+        if (item is null)
+            return MenuErrors.ItemNotFound;
+        if (imagePath is not null && (string.IsNullOrWhiteSpace(imagePath) || imagePath.Length > MenuItem.MaxImagePathLength))
+            return MenuErrors.ItemImageInvalid;
+
+        var previous = item.ImagePath;
+        item.SetImage(imagePath, now);
+        Touch(now);
+        return previous;
+    }
+
     public Result RemoveItem(Guid itemId, DateTimeOffset now)
     {
         var item = _items.FirstOrDefault(i => i.Id == itemId);

@@ -7,7 +7,7 @@ using MeuGarcom.Domain.Conversations;
 
 namespace MeuGarcom.Application.Conversations.Queries.GetPublicMenu;
 
-public sealed class GetPublicMenuHandler(IAppDbContext db) : IQueryHandler<GetPublicMenuQuery, Result<PublicMenuDto>>
+public sealed class GetPublicMenuHandler(IAppDbContext db, IMenuImageStorage images) : IQueryHandler<GetPublicMenuQuery, Result<PublicMenuDto>>
 {
     public async ValueTask<Result<PublicMenuDto>> Handle(GetPublicMenuQuery query, CancellationToken ct)
     {
@@ -16,7 +16,7 @@ public sealed class GetPublicMenuHandler(IAppDbContext db) : IQueryHandler<GetPu
             return ConversationErrors.AccessCodeInvalid;
 
         var menu = await db.LoadMenuForUnitAsync(access.UnitId, ct);
-        var categories = menu?.ToDto(onlyAvailable: true).Categories ?? [];
+        var categories = menu?.ToDto(images, onlyAvailable: true).Categories ?? [];
         return new PublicMenuDto(access.RestaurantName, categories);
     }
 }

@@ -59,7 +59,7 @@ export const api = {
   put: (path, body, opts) => request('PUT', path, { ...opts, body }),
   patch: (path, body, opts) => request('PATCH', path, { ...opts, body }),
   del: (path, opts) => request('DELETE', path, opts),
-  upload: (path, form) => request('POST', path, { form }),
+  upload: (path, form, method = 'POST') => request(method, path, { form }),
 }
 
 /** Public chat (no login). */

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api'
 import { parsePrice, priceInput } from '../../lib/format'
+import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_BYTES, prepareMenuImage } from '../../lib/image'
 import Icon from '../../components/Icon'
 import { Alert, Dialog, Field, Spinner } from '../../components/ui'
 
@@ -37,6 +38,50 @@ export default function ItemDrawer({ base, item, defaultCategoryId, categories, 
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  // keep: unchanged | new: picked locally, uploaded on save | remove: cleared on save
+  const [photo, setPhoto] = useState({ kind: 'keep' })
+  const [photoError, setPhotoError] = useState('')
+  const [preparingPhoto, setPreparingPhoto] = useState(false)
+  const fileRef = useRef(null)
+
+  useEffect(() => () => photo.previewUrl && URL.revokeObjectURL(photo.previewUrl), [photo])
+
+  const photoUrl = photo.kind === 'new' ? photo.previewUrl : photo.kind === 'remove' ? null : (item?.imageUrl ?? null)
+
+  async function pickPhoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // lets the same file be picked again after removing it
+    if (!file) return
+    setPhotoError('')
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type) || file.size > 20 * 1024 * 1024) {
+      setPhotoError('Use uma foto JPG, PNG ou WEBP.')
+      return
+    }
+    setPreparingPhoto(true)
+    try {
+      const blob = await prepareMenuImage(file)
+      if (blob.size > MAX_IMAGE_BYTES) {
+        setPhotoError('A foto ficou maior que 5 MB. Tente outra imagem.')
+        return
+      }
+      setPhoto({ kind: 'new', blob, previewUrl: URL.createObjectURL(blob) })
+    } catch {
+      setPhotoError('Não consegui ler essa foto. Tente outra imagem.')
+    } finally {
+      setPreparingPhoto(false)
+    }
+  }
+
+  async function savePhoto(itemId) {
+    if (photo.kind === 'new') {
+      const form = new FormData()
+      const extension = photo.blob.type === 'image/webp' ? 'webp' : 'jpg'
+      form.append('file', photo.blob, `photo.${extension}`)
+      await api.upload(`${base}/items/${itemId}/image`, form, 'PUT')
+    } else if (photo.kind === 'remove' && item?.imageUrl) {
+      await api.del(`${base}/items/${itemId}/image`)
+    }
+  }
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
 
@@ -66,13 +111,22 @@ export default function ItemDrawer({ base, item, defaultCategoryId, categories, 
     }
 
     setBusy(true)
+    let itemId = item?.id
     try {
       if (item) await api.put(`${base}/items/${item.id}`, body)
-      else await api.post(`${base}/items`, body)
-      onSaved(item ? 'Prato atualizado.' : 'Prato criado.')
+      else itemId = await api.post(`${base}/items`, body)
     } catch (e) {
       setError(e.message)
       setBusy(false)
+      return
+    }
+
+    try {
+      await savePhoto(itemId)
+      onSaved(item ? 'Prato atualizado.' : 'Prato criado.')
+    } catch (e) {
+      // The dish itself is saved; only the photo failed, so say that instead of losing the edit.
+      onSaved(`${item ? 'Prato atualizado' : 'Prato criado'}, mas a foto não foi salva: ${e.message}`)
     }
   }
 
@@ -116,7 +170,7 @@ export default function ItemDrawer({ base, item, defaultCategoryId, categories, 
             <button type="button" className="btn btn--ghost" onClick={onClose}>
               Cancelar
             </button>
-            <button type="button" className="btn btn--primary" onClick={save} disabled={busy}>
+            <button type="button" className="btn btn--primary" onClick={save} disabled={busy || preparingPhoto}>
               {busy ? <Spinner label="Salvando" /> : 'Salvar'}
             </button>
           </>
@@ -131,6 +185,51 @@ export default function ItemDrawer({ base, item, defaultCategoryId, categories, 
         }}
         noValidate
       >
+        <div className="photo-field">
+          <span className="photo-field-label" id="item-photo-label">
+            Foto <span className="optional">(opcional)</span>
+          </span>
+          <div className="photo-field-body">
+            {photoUrl ? (
+              <img className="photo-preview" src={photoUrl} alt={`Foto de ${form.name || 'prato'}`} width="96" height="96" />
+            ) : (
+              <span className="photo-preview photo-preview--empty" aria-hidden="true">
+                {preparingPhoto ? <Spinner label="Preparando foto" /> : <Icon name="image" size={28} />}
+              </span>
+            )}
+            <div className="photo-field-actions">
+              <input
+                ref={fileRef}
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                className="sr-only"
+                tabIndex={-1}
+                aria-labelledby="item-photo-label"
+                onChange={pickPhoto}
+              />
+              <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} disabled={preparingPhoto}>
+                <Icon name="upload" size={16} />
+                {photoUrl ? 'Trocar foto' : 'Escolher foto'}
+              </button>
+              {photoUrl && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => {
+                    setPhoto({ kind: 'remove' })
+                    setPhotoError('')
+                  }}
+                >
+                  <Icon name="trash" size={16} />
+                  Remover
+                </button>
+              )}
+              <p className={photoError ? 'field-error' : 'hint'} role={photoError ? 'alert' : undefined}>
+                {photoError || 'JPG, PNG ou WEBP. A foto aparece para o cliente no chat.'}
+              </p>
+            </div>
+          </div>
+        </div>
         <Field label="Nome" value={form.name} onChange={set('name')} error={errors.name} maxLength={120} data-autofocus />
         <Field as="select" label="Categoria" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
           {categories.map((c) => (

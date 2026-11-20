@@ -19,6 +19,7 @@ public sealed class SendMessageHandler(
     IAppDbContext db,
     InputGuard inputGuard,
     WaiterTurn waiterTurn,
+    IMenuImageStorage images,
     TimeProvider clock) : ICommandHandler<SendMessageCommand, Result<WaiterReplyDto>>
 {
     public const int HistoryLength = 12;
@@ -135,14 +136,15 @@ public sealed class SendMessageHandler(
     private void Record(Conversation conversation, GuardrailEventKind kind, DateTimeOffset now) =>
         db.GuardrailEvents.Add(GuardrailEvent.Record(conversation.UnitId, conversation.Id, kind, now));
 
-    private static ChatItemDto ToDto(MenuItem item)
+    private ChatItemDto ToDto(MenuItem item)
     {
         var tags = new List<string>(4);
         if (item.IsVegan) tags.Add("vegan");
         if (item.IsLactoseFree) tags.Add("lactose_free");
         if (item.IsGlutenFree) tags.Add("gluten_free");
         if (item.IsSpicy) tags.Add("spicy");
-        return new ChatItemDto(item.Id, item.Name, item.Price, item.Description, item.Portion, item.ServesPeople, tags);
+        return new ChatItemDto(item.Id, item.Name, item.Price, item.Description, item.Portion, item.ServesPeople, tags,
+            item.ImagePath is null ? null : images.GetPublicUrl(item.ImagePath));
     }
 
     private static ChatComboDto ToDto(ComboSuggestion combo, string language) => new(

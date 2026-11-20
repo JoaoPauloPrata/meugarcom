@@ -6,7 +6,11 @@ using MeuGarcom.Domain.Menus;
 
 namespace MeuGarcom.Application.Menus.Commands.DeleteCategory;
 
-public sealed class DeleteCategoryHandler(IAppDbContext db, ICurrentUser currentUser, TimeProvider clock)
+public sealed class DeleteCategoryHandler(
+    IAppDbContext db,
+    ICurrentUser currentUser,
+    IMenuImageStorage images,
+    TimeProvider clock)
     : ICommandHandler<DeleteCategoryCommand, Result>
 {
     public async ValueTask<Result> Handle(DeleteCategoryCommand command, CancellationToken ct)
@@ -15,11 +19,18 @@ public sealed class DeleteCategoryHandler(IAppDbContext db, ICurrentUser current
         if (menu is null)
             return MenuErrors.MenuNotFound;
 
+        var imagePaths = menu.Items
+            .Where(i => i.CategoryId == command.CategoryId && i.ImagePath is not null)
+            .Select(i => i.ImagePath!)
+            .ToList();
         var removed = menu.RemoveCategory(command.CategoryId, clock.GetUtcNow());
         if (removed.IsFailure)
             return removed;
 
         await db.SaveChangesAsync(ct);
+        if (imagePaths.Count > 0)
+            await images.DeleteAsync(imagePaths, CancellationToken.None);
+
         return Result.Success();
     }
 }
