@@ -317,18 +317,40 @@ function DishCard({ item, tags }) {
   )
 }
 
+function ComboLine({ line }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const showImage = line.imageUrl && !imageFailed
+  return (
+    <li>
+      <span className="combo-line-name">
+        {showImage && (
+          <img
+            className="combo-line-photo"
+            src={line.imageUrl}
+            alt=""
+            width="44"
+            height="44"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageFailed(true)}
+          />
+        )}
+        <span>
+          {line.quantity}× {line.name}
+        </span>
+      </span>
+      <span className="combo-line-price">{formatBRL(line.subtotal)}</span>
+    </li>
+  )
+}
+
 function ComboCard({ combo }) {
   return (
     <section className="combo-card" aria-label="Combo sugerido">
       <h3>Combo sugerido · orçamento {formatBRL(combo.budget)}</h3>
       <ul className="combo-lines">
         {combo.lines.map((line) => (
-          <li key={line.itemId}>
-            <span>
-              {line.quantity}× {line.name}
-            </span>
-            <span>{formatBRL(line.subtotal)}</span>
-          </li>
+          <ComboLine key={line.itemId} line={line} />
         ))}
       </ul>
       <div className="combo-total">
