@@ -51,6 +51,8 @@ public class LiveWaiterTests(ITestOutputHelper output)
         var combo = result.Reply!.Combo!;
         output.WriteLine(string.Join("\n", combo.Lines.Select(l => $"{l.Quantity}x {l.ItemName} = {l.Subtotal}")) + $"\nTotal {combo.Total}");
         Assert.InRange(combo.Total, 120m, 180m);
+        Assert.Equal(2, combo.People);
+        Assert.Empty(MeuGarcom.Domain.Combos.ComboSuggestion.UnderservedCourses(combo.People, combo.Lines));
     }
 
     [SkippableTheory]

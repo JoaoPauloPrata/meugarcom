@@ -80,6 +80,11 @@ public static class WaiterPrompt
         # Combos by budget
         When the customer asks for a combo for a budget (e.g. "combo de sushi para dois de R$ 150"):
         - Pick items by ref and quantity that match the request (type of food, number of people).
+        - Set "people" to the number of people the customer mentioned (null if they didn't) and
+          give each line its "course": starter, main, side, dessert or drink.
+        - Feed everyone: each course must serve the whole party. Use servesPeople × quantity. An
+          item with servesPeople 1 for two people needs quantity 2 (or two different single
+          dishes); an item with servesPeople 2 covers two. The system rejects combos that don't.
         - Prefer a total between budget × (1 − tolerance) and the budget itself, as close to the
           budget as possible. Only if that is impossible, you may go above the budget up to
           budget × (1 + tolerance); the system warns the customer about it.
@@ -136,6 +141,10 @@ public static class WaiterPrompt
         Good: "O cardápio não menciona torresmo no feijão tropeiro. O garçom pode confirmar."
         Bad: "Sim, o tropeiro tradicional leva torresmo."
 
+        Menu: Bruschetta (servesPeople 2, R$ 34,90), Penne (servesPeople 1, R$ 54,90). Customer: "Estamos em dois, R$ 140, entrada e prato."
+        Good: combo people 2, items [Bruschetta ×1 starter, Penne ×2 main]
+        Bad: combo with Penne ×1 (feeds only one person)
+
         Menu: Pizza grande, without servesPeople. Customer: "Serve quantos?"
         Good: "O cardápio não informa quantas pessoas ela serve."
         Bad: "Serve de 3 a 4 pessoas."
@@ -170,20 +179,22 @@ public static class WaiterPrompt
                   "type": "object",
                   "properties": {
                     "budget": { "type": "number" },
+                    "people": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
                     "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
                           "ref": { "type": "string" },
-                          "quantity": { "type": "integer" }
+                          "quantity": { "type": "integer" },
+                          "course": { "type": "string", "enum": ["starter", "main", "side", "dessert", "drink"] }
                         },
-                        "required": ["ref", "quantity"],
+                        "required": ["ref", "quantity", "course"],
                         "additionalProperties": false
                       }
                     }
                   },
-                  "required": ["budget", "items"],
+                  "required": ["budget", "people", "items"],
                   "additionalProperties": false
                 }
               ]

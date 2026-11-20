@@ -125,6 +125,29 @@ public class OutputGuardTests
         Assert.False(Check("Montei um combo.", [], combo).IsApproved);
     }
 
+    [Fact]
+    public void Combo_that_does_not_feed_the_party_is_rejected()
+    {
+        // Hot roll serves 1: a single one is not a main course for two.
+        var combo = new WaiterComboOutput(40m, [new(TestMenu.RefOf(_menu, "Hot roll 10 peças"), 1, "main")], People: 2);
+
+        var check = Check("Montei um combo para dois.", [], combo, "combo para dois de 40 reais");
+
+        Assert.False(check.IsApproved);
+        Assert.Contains(check.Problems, p => p.Contains("don't feed everyone"));
+    }
+
+    [Fact]
+    public void Combo_with_enough_portions_for_the_party_is_approved()
+    {
+        var combo = new WaiterComboOutput(70m, [new(TestMenu.RefOf(_menu, "Hot roll 10 peças"), 2, "main")], People: 2);
+
+        var check = Check("Montei um combo para dois.", [], combo, "combo para dois de 70 reais");
+
+        Assert.True(check.IsApproved);
+        Assert.Equal(2, check.Reply!.Combo!.People);
+    }
+
     [Theory]
     [InlineData("Posso te dar 10% de desconto no risoto!")]
     [InlineData("Vou anotar seu pedido agora.")]
