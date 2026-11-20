@@ -30,6 +30,10 @@ public sealed class UpdateUnitSettingsHandler(IAppDbContext db, ICurrentUser cur
         if (tolerance.IsFailure)
             return tolerance;
 
+        var suggestions = unit.ChangeChatSuggestions(command.ChatSuggestions.Select(s => (s.Text, s.Icon)));
+        if (suggestions.IsFailure)
+            return suggestions;
+
         await db.SaveChangesAsync(ct);
         return Result.Success();
     }

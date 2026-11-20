@@ -10,4 +10,7 @@ public sealed record UpdateUnitSettingsCommand(
     string? CuisineType,
     string UnitName,
     string? City,
-    int ComboBudgetTolerancePercent) : ICommand<Result>;
+    int ComboBudgetTolerancePercent,
+    IReadOnlyList<ChatSuggestionInput> ChatSuggestions) : ICommand<Result>;
+
+public sealed record ChatSuggestionInput(string Text, string? Icon);

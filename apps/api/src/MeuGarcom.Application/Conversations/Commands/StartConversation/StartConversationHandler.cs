@@ -1,4 +1,5 @@
 using Mediator;
+using MeuGarcom.Application.Accounts.Queries.GetWorkspace;
 using MeuGarcom.Application.Common.Interfaces;
 using MeuGarcom.Domain.Common;
 using MeuGarcom.Domain.Conversations;
@@ -18,6 +19,11 @@ public sealed class StartConversationHandler(IAppDbContext db, TimeProvider cloc
         db.Conversations.Add(conversation);
         await db.SaveChangesAsync(ct);
 
-        return new ConversationStartedDto(conversation.Id, access.RestaurantName, access.UnitName, access.TableNumber);
+        return new ConversationStartedDto(
+            conversation.Id,
+            access.RestaurantName,
+            access.UnitName,
+            access.TableNumber,
+            access.ChatSuggestions.Select(s => new ChatSuggestionDto(s.Text, s.Icon)).ToList());
     }
 }

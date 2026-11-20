@@ -2189,6 +2189,92 @@
   gap: 16px;
   max-width: 760px;
 }
+/* Chat suggestions editor */
+.card-hint {
+  margin: -8px 0 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.suggestion-editor {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.suggestion-row {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.suggestion-row-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.suggestion-row-main .form-field {
+  flex: 1;
+  min-width: 0;
+}
+.suggestion-row-main .icon-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+/* With an error under the input, keep the remove button aligned with the input, not the message. */
+.suggestion-row-main:has(.field-error) {
+  align-items: center;
+}
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.icon-picker legend {
+  width: 100%;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.icon-choice {
+  position: relative;
+  cursor: pointer;
+}
+.icon-choice input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.icon-choice-face {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink-2);
+  transition: border-color 0.2s var(--ease), background-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.icon-choice:hover .icon-choice-face {
+  border-color: var(--cool);
+}
+.icon-choice input:checked + .icon-choice-face {
+  border-color: var(--peach-ink);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.icon-choice input:focus-visible + .icon-choice-face {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 .range-row {
   display: flex;
   align-items: center;
@@ -2346,6 +2432,13 @@
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
+.suggestion {
+  text-align: center;
+}
+/* Odd count: the last card (full menu) takes the whole row instead of leaving a hole. */
+.suggestion:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .suggestion:hover {
   border-color: var(--linen-deep);
   box-shadow: var(--shadow);
@@ -2399,6 +2492,34 @@
   gap: 8px;
   align-items: flex-start;
   width: 100%;
+}
+/* Waiter avatar sits at the bubble's bottom-left; cards and quick replies below line up with the bubble. */
+.bot-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+.bot-row .bubble--bot {
+  max-width: calc(86% - 40px);
+}
+.bot-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.bot-avatar img {
+  width: 22px;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+.bot-group > :not(.bot-row) {
+  margin-left: 40px;
+  max-width: min(420px, calc(100% - 40px));
 }
 .quick-replies {
   display: flex;

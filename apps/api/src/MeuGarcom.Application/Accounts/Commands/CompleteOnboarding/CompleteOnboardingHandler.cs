@@ -1,5 +1,6 @@
 using Mediator;
 using MeuGarcom.Application.Common.Interfaces;
+using MeuGarcom.Application.Common.Messages;
 using MeuGarcom.Domain.Accounts;
 using MeuGarcom.Domain.Common;
 using MeuGarcom.Domain.Menus;
@@ -30,6 +31,8 @@ public sealed class CompleteOnboardingHandler(IAppDbContext db, ICurrentUser cur
         var unit = restaurant.Value.AddUnit(unitName, command.City, now);
         if (unit.IsFailure)
             return unit.Error!;
+
+        unit.Value.ChangeChatSuggestions(DefaultChatSuggestions.All);
 
         if (command.TableCount > 0)
         {

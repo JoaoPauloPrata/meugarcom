@@ -20,7 +20,8 @@ public sealed class UnitEndpoints : IEndpointGroup
 
         group.MapPut("/settings", async (Guid unitId, UnitSettingsRequest body, ISender sender, CancellationToken ct) =>
             (await sender.Send(new UpdateUnitSettingsCommand(
-                unitId, body.RestaurantName, body.CuisineType, body.UnitName, body.City, body.ComboBudgetTolerancePercent), ct)).ToHttp());
+                unitId, body.RestaurantName, body.CuisineType, body.UnitName, body.City, body.ComboBudgetTolerancePercent,
+                body.ChatSuggestions ?? []), ct)).ToHttp());
 
         group.MapGet("/tables", async (Guid unitId, ISender sender, CancellationToken ct) =>
             (await sender.Send(new ListTablesQuery(unitId), ct)).ToHttp());
@@ -36,7 +37,12 @@ public sealed class UnitEndpoints : IEndpointGroup
     }
 
     private sealed record UnitSettingsRequest(
-        string RestaurantName, string? CuisineType, string UnitName, string? City, int ComboBudgetTolerancePercent);
+        string RestaurantName,
+        string? CuisineType,
+        string UnitName,
+        string? City,
+        int ComboBudgetTolerancePercent,
+        IReadOnlyList<ChatSuggestionInput>? ChatSuggestions);
 
     private sealed record AddTablesRequest(int Count);
 }

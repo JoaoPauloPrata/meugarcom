@@ -1,4 +1,5 @@
 using MeuGarcom.Application.Common.Interfaces;
+using MeuGarcom.Domain.Accounts;
 using MeuGarcom.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,8 @@ public sealed record ResolvedAccess(
     string RestaurantName,
     string UnitName,
     Guid? TableId,
-    int? TableNumber);
+    int? TableNumber,
+    IReadOnlyList<ChatSuggestion> ChatSuggestions);
 
 /// <summary>Resolves the public code of a QR code / NFC link: a table code or a unit-wide code.</summary>
 public static class AccessCodeResolver
@@ -36,12 +38,13 @@ public static class AccessCodeResolver
                 u.Id,
                 u.Name,
                 u.RestaurantId,
+                u.ChatSuggestions,
                 RestaurantName = db.Restaurants.Where(r => r.Id == u.RestaurantId).Select(r => r.Name).First(),
             })
             .FirstOrDefaultAsync(ct);
 
         return unit is null
             ? null
-            : new ResolvedAccess(unit.Id, unit.RestaurantId, unit.RestaurantName, unit.Name, table?.Id, table?.Number);
+            : new ResolvedAccess(unit.Id, unit.RestaurantId, unit.RestaurantName, unit.Name, table?.Id, table?.Number, unit.ChatSuggestions);
     }
 }

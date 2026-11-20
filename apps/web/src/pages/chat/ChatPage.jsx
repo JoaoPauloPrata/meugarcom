@@ -7,16 +7,9 @@ import { Dialog, Spinner } from '../../components/ui'
 
 const MAX_LENGTH = 500
 
-const SUGGESTIONS = [
-  { icon: 'chat', label: 'O que você recomenda?', prompt: 'O que você recomenda?' },
-  { icon: 'wheatOff', label: 'Opções sem glúten', prompt: 'Quais opções são sem glúten?' },
-  { icon: 'wine', label: 'Harmonizar com vinho', prompt: 'Que vinho combina com os pratos principais?' },
-  { icon: 'book', label: 'Ver cardápio completo', action: 'menu' },
-]
-
 export default function ChatPage() {
   const { code } = useParams()
-  const [session, setSession] = useState(null) // { conversationId, restaurantName, tableNumber }
+  const [session, setSession] = useState(null) // { conversationId, restaurantName, tableNumber, suggestions }
   const [startError, setStartError] = useState('')
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
@@ -40,9 +33,20 @@ export default function ChatPage() {
       .catch((e) => setStartError(e.message))
   }, [code])
 
+  // While the user is asking (or the waiter is typing) follow the bottom; once a reply arrives,
+  // pin its start to the top so long lists are read from the first item down.
   useEffect(() => {
     const node = scrollRef.current
-    if (node) node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
+    if (!node) return
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    const last = messages[messages.length - 1]
+    const lastNode = !sending && last && last.role !== 'user' ? node.querySelector(`[data-message-id="${last.id}"]`) : null
+    if (!lastNode) {
+      node.scrollTo({ top: node.scrollHeight, behavior })
+      return
+    }
+    const offset = lastNode.getBoundingClientRect().top - node.getBoundingClientRect().top
+    node.scrollTo({ top: node.scrollTop + offset - 12, behavior })
   }, [messages, sending])
 
   async function send(content) {
@@ -140,18 +144,17 @@ export default function ChatPage() {
               <img src="/logo-icon.png" alt="" width="96" height="39" />
               <h2>{greetingForNow()}! O que vamos pedir hoje?</h2>
               <div className="suggestions">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    className="suggestion"
-                    onClick={() => (s.action === 'menu' ? setMenuOpen(true) : send(s.prompt))}
-                    disabled={sending}
-                  >
+                {(session.suggestions ?? []).map((s) => (
+                  <button key={s.text} type="button" className="suggestion" onClick={() => send(s.text)} disabled={sending}>
                     <Icon name={s.icon} size={24} />
-                    {s.label}
+                    {s.text}
                   </button>
                 ))}
+                {/* Opening the full menu is an app action, not a question, so it is always offered. */}
+                <button type="button" className="suggestion" onClick={() => setMenuOpen(true)}>
+                  <Icon name="book" size={24} />
+                  Ver cardápio completo
+                </button>
               </div>
             </div>
           )}
@@ -164,15 +167,18 @@ export default function ChatPage() {
                   {m.text}
                 </p>
               ) : m.role === 'error' ? (
-                <p key={m.id} className="bubble bubble--error" role="alert">
+                <p key={m.id} data-message-id={m.id} className="bubble bubble--error" role="alert">
                   {m.text}
                 </p>
               ) : (
-                <div key={m.id} className="bot-group">
-                  <p className="bubble bubble--bot">
-                    <span className="sr-only">Garçom: </span>
-                    {m.text}
-                  </p>
+                <div key={m.id} data-message-id={m.id} className="bot-group">
+                  <div className="bot-row">
+                    <BotAvatar />
+                    <p className="bubble bubble--bot">
+                      <span className="sr-only">Garçom: </span>
+                      {m.text}
+                    </p>
+                  </div>
                   {m.combo && <ComboCard combo={m.combo} />}
                   {m.items?.length > 0 && !m.combo && (
                     <div className="dish-cards">
@@ -189,10 +195,13 @@ export default function ChatPage() {
             )}
           </div>
           {sending && (
-            <div className="typing-dots" role="status" aria-label="O garçom está digitando">
-              <span />
-              <span />
-              <span />
+            <div className="bot-row">
+              <BotAvatar />
+              <div className="typing-dots" role="status" aria-label="O garçom está digitando">
+                <span />
+                <span />
+                <span />
+              </div>
             </div>
           )}
           {closed && <p className="bubble bubble--system">Conversa encerrada. Se precisar, chame o garçom.</p>}
@@ -242,6 +251,14 @@ export default function ChatPage() {
 
       {menuOpen && <MenuSheet code={code} onClose={() => setMenuOpen(false)} />}
     </div>
+  )
+}
+
+function BotAvatar() {
+  return (
+    <span className="bot-avatar" aria-hidden="true">
+      <img src="/logo-icon.png" alt="" width="22" height="9" />
+    </span>
   )
 }
 

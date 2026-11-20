@@ -10,8 +10,10 @@ public sealed class Unit : Entity
     public const int MaxTables = 300;
     public const decimal DefaultComboBudgetTolerance = 0.20m;
     public const decimal MaxComboBudgetTolerance = 0.50m;
+    public const int MaxChatSuggestions = 3;
 
     private readonly List<DiningTable> _tables = [];
+    private List<ChatSuggestion> _chatSuggestions = [];
 
     private Unit() { }
 
@@ -22,6 +24,9 @@ public sealed class Unit : Entity
 
     /// <summary>Allowed distance from the customer's budget when assembling a combo (0.20 = ±20%).</summary>
     public decimal ComboBudgetTolerance { get; private set; }
+
+    /// <summary>Questions offered on the chat welcome screen, in display order.</summary>
+    public IReadOnlyList<ChatSuggestion> ChatSuggestions => _chatSuggestions.AsReadOnly();
 
     public DateTimeOffset CreatedAt { get; private set; }
     public IReadOnlyList<DiningTable> Tables => _tables.AsReadOnly();
@@ -69,6 +74,26 @@ public sealed class Unit : Entity
             return UnitErrors.ComboToleranceOutOfRange;
 
         ComboBudgetTolerance = decimal.Round(tolerance, 2);
+        return Result.Success();
+    }
+
+    /// <summary>Replaces the welcome suggestions. Blank entries are rejected; repeated texts are kept once.</summary>
+    public Result ChangeChatSuggestions(IEnumerable<(string Text, string? Icon)> suggestions)
+    {
+        var normalized = new List<ChatSuggestion>();
+        foreach (var (text, icon) in suggestions)
+        {
+            var suggestion = ChatSuggestion.Create(text, icon);
+            if (suggestion.IsFailure)
+                return suggestion.Error!;
+            if (!normalized.Any(s => string.Equals(s.Text, suggestion.Value.Text, StringComparison.OrdinalIgnoreCase)))
+                normalized.Add(suggestion.Value);
+        }
+
+        if (normalized.Count > MaxChatSuggestions)
+            return UnitErrors.TooManyChatSuggestions;
+
+        _chatSuggestions = normalized;
         return Result.Success();
     }
 

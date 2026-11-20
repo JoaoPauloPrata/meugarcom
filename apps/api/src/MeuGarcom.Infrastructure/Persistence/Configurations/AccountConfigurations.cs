@@ -1,5 +1,7 @@
+using System.Text.Json;
 using MeuGarcom.Domain.Accounts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MeuGarcom.Infrastructure.Persistence.Configurations;
@@ -29,12 +31,25 @@ internal sealed class RestaurantConfiguration : IEntityTypeConfiguration<Restaur
 
 internal sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     public void Configure(EntityTypeBuilder<Unit> builder)
     {
         builder.ToTable("units");
         builder.HasKey(u => u.Id);
         builder.HasIndex(u => u.PublicCode).IsUnique();
         builder.Property(u => u.ComboBudgetTolerance).HasPrecision(3, 2);
+        builder.Property(u => u.ChatSuggestions)
+            .HasField("_chatSuggestions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                suggestions => JsonSerializer.Serialize(suggestions, JsonOptions),
+                json => JsonSerializer.Deserialize<List<ChatSuggestion>>(json, JsonOptions) ?? new List<ChatSuggestion>(),
+                new ValueComparer<IReadOnlyList<ChatSuggestion>>(
+                    (a, b) => a!.SequenceEqual(b!),
+                    list => list.Aggregate(0, (hash, s) => HashCode.Combine(hash, s.GetHashCode())),
+                    list => list.ToList()));
         builder.HasMany(u => u.Tables).WithOne().HasForeignKey(t => t.UnitId);
         builder.Navigation(u => u.Tables).HasField("_tables");
     }

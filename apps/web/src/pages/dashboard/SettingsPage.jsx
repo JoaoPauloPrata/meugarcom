@@ -2,7 +2,21 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import Icon from '../../components/Icon'
 import { Alert, Field, Spinner, useToast } from '../../components/ui'
+
+const MAX_SUGGESTIONS = 3
+const SUGGESTION_MAX_LENGTH = 80
+const SUGGESTION_ICONS = [
+  { name: 'chat', label: 'Conversa' },
+  { name: 'sparkles', label: 'Destaque' },
+  { name: 'heart', label: 'Favorito' },
+  { name: 'wheatOff', label: 'Sem glúten' },
+  { name: 'leaf', label: 'Vegetariano' },
+  { name: 'wine', label: 'Vinho' },
+  { name: 'cup', label: 'Bebidas' },
+  { name: 'tag', label: 'Preço' },
+]
 
 export default function SettingsPage() {
   const { workspace, unit, reloadWorkspace } = useOutletContext()
@@ -13,6 +27,7 @@ export default function SettingsPage() {
     unitName: unit.name,
     city: unit.city ?? '',
     tolerance: Math.round(unit.comboBudgetTolerance * 100),
+    suggestions: (unit.chatSuggestions ?? []).map((s) => ({ key: crypto.randomUUID(), ...s })),
   })
   const [errors, setErrors] = useState({})
   const [error, setError] = useState('')
@@ -20,6 +35,11 @@ export default function SettingsPage() {
   const [toast, showToast] = useToast()
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+  const setSuggestion = (key, patch) =>
+    setForm((f) => ({ ...f, suggestions: f.suggestions.map((s) => (s.key === key ? { ...s, ...patch } : s)) }))
+  const addSuggestion = () =>
+    setForm((f) => ({ ...f, suggestions: [...f.suggestions, { key: crypto.randomUUID(), text: '', icon: 'chat' }] }))
+  const removeSuggestion = (key) => setForm((f) => ({ ...f, suggestions: f.suggestions.filter((s) => s.key !== key) }))
 
   async function save(e) {
     e.preventDefault()
@@ -27,6 +47,9 @@ export default function SettingsPage() {
     const next = {}
     if (!form.restaurantName.trim()) next.restaurantName = 'Informe o nome do restaurante.'
     if (!form.unitName.trim()) next.unitName = 'Informe o nome da unidade.'
+    for (const s of form.suggestions) {
+      if (!s.text.trim()) next[`suggestion-${s.key}`] = 'Escreva a pergunta ou remova a sugestão.'
+    }
     setErrors(next)
     if (Object.keys(next).length) return
 
@@ -38,6 +61,7 @@ export default function SettingsPage() {
         unitName: form.unitName.trim(),
         city: form.city.trim() || null,
         comboBudgetTolerancePercent: Number(form.tolerance),
+        chatSuggestions: form.suggestions.map((s) => ({ text: s.text.trim(), icon: s.icon })),
       })
       await reloadWorkspace()
       showToast('Configurações salvas.')
@@ -95,6 +119,66 @@ export default function SettingsPage() {
               Para um combo de R$ {budgetExample}, o garçom monta opções entre R$ {min} e R$ {max}. Acima do valor pedido, ele avisa o cliente.
             </span>
           </div>
+        </section>
+
+        <section className="card" aria-labelledby="suggestions-title">
+          <h2 id="suggestions-title">Sugestões do chat</h2>
+          <p className="card-hint">
+            Perguntas prontas na tela inicial do chat. Ao tocar, o cliente envia a pergunta ao garçom. O atalho “Ver
+            cardápio completo” aparece sempre.
+          </p>
+          {form.suggestions.length > 0 && (
+            <ol className="suggestion-editor">
+              {form.suggestions.map((s, index) => (
+                <li key={s.key} className="suggestion-row">
+                  <div className="suggestion-row-main">
+                    <Field
+                      label={`Sugestão ${index + 1}`}
+                      value={s.text}
+                      onChange={(e) => setSuggestion(s.key, { text: e.target.value })}
+                      error={errors[`suggestion-${s.key}`]}
+                      maxLength={SUGGESTION_MAX_LENGTH}
+                      placeholder="Ex.: Qual o prato do dia?"
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn icon-btn--plain"
+                      onClick={() => removeSuggestion(s.key)}
+                      aria-label={`Remover sugestão ${index + 1}`}
+                    >
+                      <Icon name="trash" size={18} />
+                    </button>
+                  </div>
+                  <fieldset className="icon-picker">
+                    <legend>Ícone</legend>
+                    {SUGGESTION_ICONS.map((icon) => (
+                      <label key={icon.name} className="icon-choice" title={icon.label}>
+                        <input
+                          type="radio"
+                          name={`icon-${s.key}`}
+                          value={icon.name}
+                          checked={s.icon === icon.name}
+                          onChange={() => setSuggestion(s.key, { icon: icon.name })}
+                        />
+                        <span className="icon-choice-face">
+                          <Icon name={icon.name} size={18} />
+                        </span>
+                        <span className="sr-only">{icon.label}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                </li>
+              ))}
+            </ol>
+          )}
+          {form.suggestions.length < MAX_SUGGESTIONS ? (
+            <button type="button" className="btn btn--outline" onClick={addSuggestion}>
+              <Icon name="plus" size={18} />
+              Adicionar sugestão
+            </button>
+          ) : (
+            <p className="hint">Limite de {MAX_SUGGESTIONS} sugestões atingido.</p>
+          )}
         </section>
 
         <section className="card">

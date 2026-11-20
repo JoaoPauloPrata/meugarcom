@@ -15,5 +15,13 @@ public sealed class UpdateUnitSettingsValidator : AbstractValidator<UpdateUnitSe
             .MaximumLength(Unit.MaxNameLength).WithMessage(UserMessages.TooLong);
         RuleFor(x => x.City).MaximumLength(Unit.MaxCityLength).WithMessage(UserMessages.TooLong);
         RuleFor(x => x.ComboBudgetTolerancePercent).InclusiveBetween(0, 50).WithMessage(UserMessages.InvalidValue);
+        RuleFor(x => x.ChatSuggestions).NotNull().WithMessage(UserMessages.InvalidValue)
+            .Must(s => s is null || s.Count <= Unit.MaxChatSuggestions).WithMessage(UserMessages.ForCode(UnitErrors.TooManyChatSuggestions.Code));
+        RuleForEach(x => x.ChatSuggestions).ChildRules(suggestion =>
+        {
+            suggestion.RuleFor(s => s.Text).NotEmpty().WithMessage(UserMessages.Required)
+                .MaximumLength(ChatSuggestion.MaxTextLength).WithMessage(UserMessages.TooLong);
+            suggestion.RuleFor(s => s.Icon).Must(i => i is null || ChatSuggestion.Icons.Contains(i)).WithMessage(UserMessages.InvalidValue);
+        });
     }
 }

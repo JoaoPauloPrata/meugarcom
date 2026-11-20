@@ -14,4 +14,12 @@ public sealed record WorkspaceDto(
     string? CuisineType,
     IReadOnlyList<UnitDto> Units);
 
-public sealed record UnitDto(Guid Id, string Name, string? City, string PublicCode, decimal ComboBudgetTolerance);
+public sealed record UnitDto(
+    Guid Id,
+    string Name,
+    string? City,
+    string PublicCode,
+    decimal ComboBudgetTolerance,
+    IReadOnlyList<ChatSuggestionDto> ChatSuggestions);
+
+public sealed record ChatSuggestionDto(string Text, string Icon);

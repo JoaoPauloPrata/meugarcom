@@ -28,7 +28,9 @@ public sealed class GetWorkspaceHandler(IAppDbContext db, ICurrentUser currentUs
             restaurant.CuisineType,
             restaurant.Units
                 .OrderBy(u => u.CreatedAt)
-                .Select(u => new UnitDto(u.Id, u.Name, u.City, u.PublicCode, u.ComboBudgetTolerance))
+                .Select(u => new UnitDto(
+                    u.Id, u.Name, u.City, u.PublicCode, u.ComboBudgetTolerance,
+                    u.ChatSuggestions.Select(s => new ChatSuggestionDto(s.Text, s.Icon)).ToList()))
                 .ToList());
     }
 }
