@@ -36,4 +36,5 @@ public sealed record ChatComboDto(
     string? Notice,
     IReadOnlyList<ChatComboLineDto> Lines);
 
-public sealed record ChatComboLineDto(Guid ItemId, string Name, int Quantity, decimal UnitPrice, decimal Subtotal);
+public sealed record ChatComboLineDto(
+    Guid ItemId, string Name, int Quantity, decimal UnitPrice, decimal Subtotal, string? ImageUrl);

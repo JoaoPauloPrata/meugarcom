@@ -98,7 +98,7 @@ public sealed class SendMessageHandler(
                 turn.Provider, turn.Model);
         }
 
-        var combo = turn.Reply.Combo is { } suggestion ? ToDto(suggestion, conversation.ReplyLanguage) : null;
+        var combo = turn.Reply.Combo is { } suggestion ? ToDto(suggestion, snapshot, conversation.ReplyLanguage) : null;
         conversation.Reply(new AssistantReply(
             turn.Reply.Text,
             turn.Reply.ItemIds,
@@ -144,15 +144,19 @@ public sealed class SendMessageHandler(
         if (item.IsGlutenFree) tags.Add("gluten_free");
         if (item.IsSpicy) tags.Add("spicy");
         return new ChatItemDto(item.Id, item.Name, item.Price, item.Description, item.Portion, item.ServesPeople, tags,
-            item.ImagePath is null ? null : images.GetPublicUrl(item.ImagePath));
+            ImageUrlOf(item));
     }
 
-    private static ChatComboDto ToDto(ComboSuggestion combo, string language) => new(
+    private ChatComboDto ToDto(ComboSuggestion combo, MenuSnapshot snapshot, string language) => new(
         combo.Budget,
         combo.Total,
         combo.IsOverBudget,
         combo.IsOverBudget
             ? FixedReplies.Get(FixedReply.ComboOverBudget, language, FixedReplies.FormatBrl(combo.Budget), FixedReplies.FormatBrl(combo.Total))
             : null,
-        combo.Lines.Select(l => new ChatComboLineDto(l.ItemId, l.ItemName, l.Quantity, l.UnitPrice, l.Subtotal)).ToList());
+        combo.Lines.Select(l => new ChatComboLineDto(l.ItemId, l.ItemName, l.Quantity, l.UnitPrice, l.Subtotal,
+            ImageUrlOf(snapshot.Items.FirstOrDefault(i => i.Id == l.ItemId)))).ToList());
+
+    private string? ImageUrlOf(MenuItem? item) =>
+        item?.ImagePath is null ? null : images.GetPublicUrl(item.ImagePath);
 }

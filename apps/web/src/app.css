@@ -2640,9 +2640,24 @@
 .combo-lines li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
 }
-.combo-lines span:last-child {
+.combo-line-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.combo-line-photo {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--linen);
+}
+.combo-line-price {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
