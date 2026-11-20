@@ -173,10 +173,17 @@ public static partial class OutputGuard
                 problem = $"The combo uses \"{line.Ref}\", which is not a ref in <menu_data>.";
                 return null;
             }
-            lines.Add(new ComboLine(item.Id, item.Name, item.Price, line.Quantity));
+            // A missing course (schema-less provider answer) counts as a main dish.
+            var course = ComboCourse.Main;
+            if (line.Course is not null && !Enum.TryParse(line.Course, ignoreCase: true, out course))
+            {
+                problem = $"The combo line \"{line.Ref}\" has course \"{line.Course}\"; use starter, main, side, dessert or drink.";
+                return null;
+            }
+            lines.Add(new ComboLine(item.Id, item.Name, item.Price, line.Quantity, course, item.ServesPeople));
         }
 
-        var result = ComboSuggestion.Create(output.Budget, menu.ComboBudgetTolerance, lines);
+        var result = ComboSuggestion.Create(output.Budget, menu.ComboBudgetTolerance, lines, output.People);
         if (result.IsSuccess)
             return result.Value;
 
@@ -185,11 +192,26 @@ public static partial class OutputGuard
         var max = output.Budget * (1 + menu.ComboBudgetTolerance);
         problem = result.Error!.Code switch
         {
+            "combo.not_enough_for_party" => NotEnoughForPartyProblem(output.People!.Value, lines),
             "combo.above_range" or "combo.below_range" =>
                 $"The combo totals {FixedReplies.FormatBrl(total)}, outside the allowed range {FixedReplies.FormatBrl(min)} to {FixedReplies.FormatBrl(max)} for a budget of {FixedReplies.FormatBrl(output.Budget)}. Pick other items/quantities, or set combo to null and say it was not possible.",
             _ => "The combo is invalid: use distinct refs, quantities from 1 to 20 and a positive budget.",
         };
         return null;
+    }
+
+    private static string NotEnoughForPartyProblem(int people, IReadOnlyList<ComboLine> lines)
+    {
+        var details = ComboSuggestion.UnderservedCourses(people, lines).Select(course =>
+        {
+            var courseLines = lines.Where(l => l.Course == course)
+                .Select(l => $"{l.Quantity}x {l.ItemName} (servesPeople {l.ServesPeople})");
+            var served = lines.Where(l => l.Course == course).Sum(l => l.PeopleServed ?? 0);
+            return $"{course.ToString().ToLowerInvariant()}: {string.Join(", ", courseLines)} feeds {served}";
+        });
+        return $"The combo is for {people} people, but some courses don't feed everyone ({string.Join("; ", details)}). "
+            + "Raise quantities or pick items that serve more people so each course feeds the whole party, within the budget range; "
+            + "if that is impossible, set combo to null and say it was not possible.";
     }
 
     private static bool IsAllowedAmount(decimal amount, MenuSnapshot menu, ComboSuggestion? combo, IReadOnlyList<string> customerTexts)

@@ -27,8 +27,10 @@ public sealed record WaiterOutput(
 
 public sealed record WaiterComboOutput(
     [property: JsonPropertyName("budget")] decimal Budget,
-    [property: JsonPropertyName("items")] List<WaiterComboItemOutput>? Items);
+    [property: JsonPropertyName("items")] List<WaiterComboItemOutput>? Items,
+    [property: JsonPropertyName("people")] int? People = null);
 
 public sealed record WaiterComboItemOutput(
     [property: JsonPropertyName("ref")] string? Ref,
-    [property: JsonPropertyName("quantity")] int Quantity);
+    [property: JsonPropertyName("quantity")] int Quantity,
+    [property: JsonPropertyName("course")] string? Course = null);

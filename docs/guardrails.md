@@ -208,6 +208,11 @@ Um combo é **próximo do orçamento** quando o total fica na faixa entre
 4. A regra 1 vale aqui também: o assistente só diz que o combo "serve dois" se os itens
    tiverem a porção informada no cardápio. Se não tiverem, avisa que o cardápio não
    informa as porções.
+5. **Todo mundo come**: quando o cliente diz para quantas pessoas é o combo, cada etapa da
+   refeição (entrada, prato principal, acompanhamento, sobremesa, bebida) precisa servir o
+   grupo inteiro, somando `servesPeople × quantidade`. Prato individual para dois vai com
+   quantidade 2 (ou dois pratos individuais diferentes). Etapa com item sem porção informada
+   não é julgada (cai na regra 4).
 
 ### Como garantir
 
@@ -219,6 +224,9 @@ Um combo é **próximo do orçamento** quando o total fica na faixa entre
   tolerância e falha com `Result` se o total ficar fora da faixa. O combo indica se ficou
   acima do orçamento, o que dispara a mensagem de aviso. Se a regra rejeitar o combo, o
   modelo tenta de novo dentro do mesmo ciclo de regeneração da seção 1.
+- O modelo informa `people` (número de pessoas do pedido) e a etapa (`course`) de cada item.
+  O `ComboSuggestion` rejeita com `combo.not_enough_for_party` quando alguma etapa com porções
+  informadas não alimenta o grupo; a porção vem do banco, nunca do modelo.
 
 ## 5. Escopo e promessas
 

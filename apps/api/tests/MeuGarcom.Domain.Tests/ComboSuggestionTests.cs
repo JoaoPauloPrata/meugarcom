@@ -49,4 +49,55 @@ public class ComboSuggestionTests
 
         Assert.Equal(ComboErrors.DuplicatedItem, combo.Error);
     }
+
+    private static ComboLine Dish(decimal price, ComboCourse course, int? servesPeople, int quantity = 1) =>
+        new(Guid.NewGuid(), "Item", price, quantity, course, servesPeople);
+
+    [Fact]
+    public void Single_portion_main_for_two_people_is_rejected()
+    {
+        var combo = ComboSuggestion.Create(140m, 0.50m,
+            [Dish(34.90m, ComboCourse.Starter, 2), Dish(54.90m, ComboCourse.Main, 1)], people: 2);
+
+        Assert.Equal(ComboErrors.NotEnoughForParty, combo.Error);
+    }
+
+    [Fact]
+    public void Each_course_feeding_the_party_is_valid()
+    {
+        var combo = ComboSuggestion.Create(140m, 0.20m,
+            [Dish(34.90m, ComboCourse.Starter, 2), Dish(54.90m, ComboCourse.Main, 1, quantity: 2)], people: 2);
+
+        Assert.True(combo.IsSuccess);
+        Assert.Equal(144.70m, combo.Value.Total);
+        Assert.True(combo.Value.IsOverBudget);
+        Assert.Equal(2, combo.Value.People);
+    }
+
+    [Fact]
+    public void Two_different_single_mains_feed_two_people()
+    {
+        var combo = ComboSuggestion.Create(120m, 0.20m,
+            [Dish(54.90m, ComboCourse.Main, 1), Dish(59.90m, ComboCourse.Main, 1)], people: 2);
+
+        Assert.True(combo.IsSuccess);
+    }
+
+    [Fact]
+    public void Course_with_unknown_portion_is_not_judged()
+    {
+        var combo = ComboSuggestion.Create(60m, 0.20m, [Dish(54.90m, ComboCourse.Main, null)], people: 2);
+
+        Assert.True(combo.IsSuccess);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(51)]
+    public void Invalid_party_size_is_rejected(int people)
+    {
+        var combo = ComboSuggestion.Create(100m, 0.20m, [Line(100m)], people);
+
+        Assert.Equal(ComboErrors.PeopleInvalid, combo.Error);
+    }
 }
