@@ -10,6 +10,7 @@
     "build": "npm run build --workspace=apps/web",
     "preview": "npm run preview --workspace=apps/web",
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev:api": "npm run dev --workspace=apps/api"
+    "dev:api": "npm run dev --workspace=apps/api",
+    "test:api": "npm run test --workspace=apps/api"
   }
 }

@@ -146,16 +146,19 @@ caminho secundário. Meta: "do PDF à mesa em cerca de 20 minutos".
 | 2026-11-18 | O assistente nunca promete nada fora do escopo. |
 | 2026-11-18 | Responde no **idioma da primeira mensagem** do cliente. Nenhum idioma é bloqueado; a troca de idioma no meio da conversa fica a critério do modelo. |
 | 2026-11-18 | Rate limit de **10 mensagens por minuto** por conversa: necessidade registrada, ainda não implementada. |
+| 2026-11-18 | Login e cadastro pelo **Supabase Auth** (e-mail/senha; botão do Google pronto, OAuth a configurar). Dados do app só pela API .NET. |
+| 2026-11-18 | Schema do banco criado por **migrations SQL aplicadas pelo MCP do Supabase** (`supabase/migrations/`); o EF Core só mapeia. |
+| 2026-11-18 | O chat abre uma **conversa nova a cada acesso** ao link (QR da mesa ou link geral da unidade). Sem login do cliente. |
+| 2026-11-18 | Cardápio vai **direto no contexto** do modelo (JSON delimitado), com refs curtas por item. Busca por relevância fica para cardápios grandes. |
+| 2026-11-18 | Respostas fixas em **PT-BR, EN e ES**, com EN como reserva para outros idiomas. |
+| 2026-11-18 | Limites: mensagem de até **500** caracteres, **40** mensagens por conversa, sessão de **4 h**; conversa encerrada após 3 mensagens ofensivas. |
+| 2026-11-18 | Importação aceita **PDF, JPG, PNG, WEBP, XLSX e CSV** (até 10 MB) e usa o mesmo provedor/fallback do chat. |
 
 ## Perguntas em aberto
 
-- Formatos aceitos na importação (PDF, imagem, planilha, link?) e se a importação usa o
-  mesmo provedor de IA do chat.
-- Como o cardápio é passado ao modelo: contexto direto no prompt (simples, cabe para
-  cardápios pequenos) ou busca por relevância (para cardápios grandes).
-- Override de modelo por restaurante é necessário no MVP ou só global?
-- Respostas padrão fixas (bloqueio e resposta segura) não passam pelo modelo: em quais
-  idiomas o catálogo vem pronto, e qual idioma usar quando o do cliente não estiver nele?
-  Proposta: PT-BR, EN e ES, com EN como reserva.
-- Valores dos outros limites de uso: tamanho da mensagem, mensagens por conversa, duração
-  da sessão.
+- Importação por **link** (site do restaurante) ainda não é aceita.
+- Override de modelo por restaurante: o schema já suporta (`ai_model_settings.restaurant_id`),
+  mas não há tela para isso; hoje é só por SQL. Precisa de tela no MVP?
+- Preços dos planos 2 e 3 (a tela de planos mostra "Em breve").
+- E-mail transacional: o Supabase precisa de SMTP próprio para enviar confirmação de cadastro
+  e recuperação de senha em produção.
