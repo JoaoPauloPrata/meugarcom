@@ -55,7 +55,14 @@ export default function ChatPage() {
       const reply = await publicApi.sendMessage(session.conversationId, value)
       setMessages((list) => [
         ...list,
-        { id: crypto.randomUUID(), role: 'bot', text: reply.reply, items: reply.items, combo: reply.combo },
+        {
+          id: crypto.randomUUID(),
+          role: 'bot',
+          text: reply.reply,
+          items: reply.items,
+          combo: reply.combo,
+          quickReplies: reply.quickReplies ?? [],
+        },
       ])
       if (reply.conversationClosed) setClosed(true)
     } catch (e) {
@@ -150,7 +157,7 @@ export default function ChatPage() {
           )}
 
           <div className="chat-log" role="log" aria-live="polite" aria-relevant="additions">
-            {messages.map((m) =>
+            {messages.map((m, index) =>
               m.role === 'user' ? (
                 <p key={m.id} className="bubble bubble--user">
                   <span className="sr-only">Você: </span>
@@ -173,6 +180,9 @@ export default function ChatPage() {
                         <DishCard key={item.id} item={item} tags={item.tags} />
                       ))}
                     </div>
+                  )}
+                  {index === messages.length - 1 && !sending && !closed && m.quickReplies?.length > 0 && (
+                    <QuickReplies options={m.quickReplies} onPick={send} />
                   )}
                 </div>
               ),
@@ -232,6 +242,20 @@ export default function ChatPage() {
 
       {menuOpen && <MenuSheet code={code} onClose={() => setMenuOpen(false)} />}
     </div>
+  )
+}
+
+function QuickReplies({ options, onPick }) {
+  return (
+    <ul className="quick-replies" aria-label="Sugestões de resposta">
+      {options.map((option) => (
+        <li key={option}>
+          <button type="button" className="quick-reply" onClick={() => onPick(option)}>
+            {option}
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 

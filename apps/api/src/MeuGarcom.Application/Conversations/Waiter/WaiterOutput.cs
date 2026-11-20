@@ -7,7 +7,8 @@ namespace MeuGarcom.Application.Conversations.Waiter;
 public sealed record WaiterOutput(
     [property: JsonPropertyName("reply")] string? Reply,
     [property: JsonPropertyName("referencedItemRefs")] List<string>? ReferencedItemRefs,
-    [property: JsonPropertyName("combo")] WaiterComboOutput? Combo)
+    [property: JsonPropertyName("combo")] WaiterComboOutput? Combo,
+    [property: JsonPropertyName("quickReplies")] List<string>? QuickReplies = null)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 

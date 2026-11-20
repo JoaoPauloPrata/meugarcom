@@ -7,12 +7,14 @@ public sealed record SendMessageCommand(Guid ConversationId, string Content) : I
 
 /// <param name="Outcome">answered | blocked | abuse | safe_fallback.</param>
 /// <param name="ConversationClosed">True when the conversation was ended (abuse or limits).</param>
+/// <param name="QuickReplies">Suggested next messages; a tap sends the text as the customer.</param>
 public sealed record WaiterReplyDto(
     string Reply,
     IReadOnlyList<ChatItemDto> Items,
     ChatComboDto? Combo,
     string Outcome,
-    bool ConversationClosed);
+    bool ConversationClosed,
+    IReadOnlyList<string> QuickReplies);
 
 /// <param name="Tags">vegan | lactose_free | gluten_free | spicy (only the confirmed ones).</param>
 public sealed record ChatItemDto(

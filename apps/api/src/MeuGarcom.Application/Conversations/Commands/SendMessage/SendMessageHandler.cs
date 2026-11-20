@@ -111,7 +111,8 @@ public sealed class SendMessageHandler(
             .Select(id => snapshot.Items.First(i => i.Id == id))
             .Select(ToDto)
             .ToList();
-        return new WaiterReplyDto(turn.Reply.Text, items, combo, "answered", conversation.Status == ConversationStatus.Closed);
+        return new WaiterReplyDto(turn.Reply.Text, items, combo, "answered",
+            conversation.Status == ConversationStatus.Closed, turn.Reply.QuickReplies);
     }
 
     private async Task<Result<WaiterReplyDto>> ReplyFixedAsync(
@@ -128,7 +129,7 @@ public sealed class SendMessageHandler(
             ReplyOutcome.Abuse => "abuse",
             _ => "safe_fallback",
         };
-        return new WaiterReplyDto(text, [], null, outcomeName, conversation.Status == ConversationStatus.Closed);
+        return new WaiterReplyDto(text, [], null, outcomeName, conversation.Status == ConversationStatus.Closed, []);
     }
 
     private void Record(Conversation conversation, GuardrailEventKind kind, DateTimeOffset now) =>

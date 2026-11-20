@@ -106,4 +106,47 @@ public class OutputGuardTests
     {
         Assert.True(Check("Não consigo oferecer desconto, mas o garçom pode ajudar com o que precisar.").IsApproved);
     }
+
+    [Fact]
+    public void Group_reply_keeps_its_quick_replies()
+    {
+        var check = OutputGuard.Check(
+            new WaiterOutput("Temos drinks, cervejas e vinhos. Qual você prefere?", [], null,
+                ["Liste os drinks", "Liste as cervejas", "Liste os vinhos"]),
+            _menu, []);
+
+        Assert.True(check.IsApproved);
+        Assert.Equal(["Liste os drinks", "Liste as cervejas", "Liste os vinhos"], check.Reply!.QuickReplies);
+    }
+
+    [Fact]
+    public void Invalid_quick_replies_are_dropped_without_rejecting_the_answer()
+    {
+        var check = OutputGuard.Check(
+            new WaiterOutput("Temos cervejas e vinhos.", [], null,
+            [
+                "  Liste   as cervejas ",
+                "liste as cervejas",
+                "Veja https://example.com",
+                "",
+                new string('a', OutputGuard.MaxQuickReplyLength + 1),
+                "Liste os vinhos",
+                "Quais são sem glúten?",
+                "Tem sobremesa?",
+                "Tem café?",
+            ]),
+            _menu, []);
+
+        Assert.True(check.IsApproved);
+        Assert.Equal(["Liste as cervejas", "Liste os vinhos", "Quais são sem glúten?", "Tem sobremesa?"], check.Reply!.QuickReplies);
+    }
+
+    [Fact]
+    public void Missing_quick_replies_become_an_empty_list()
+    {
+        var check = Check("Temos cervejas e vinhos.");
+
+        Assert.True(check.IsApproved);
+        Assert.Empty(check.Reply!.QuickReplies);
+    }
 }

@@ -7,7 +7,12 @@ using MeuGarcom.Domain.Menus;
 namespace MeuGarcom.Application.Conversations.Waiter;
 
 /// <summary>Answer approved by the output guardrail.</summary>
-public sealed record ValidatedReply(string Text, IReadOnlyList<Guid> ItemIds, ComboSuggestion? Combo);
+/// <param name="QuickReplies">Buttons shown under the reply; a tap sends the text as the customer.</param>
+public sealed record ValidatedReply(
+    string Text,
+    IReadOnlyList<Guid> ItemIds,
+    ComboSuggestion? Combo,
+    IReadOnlyList<string> QuickReplies);
 
 public sealed record OutputCheck(ValidatedReply? Reply, IReadOnlyList<string> Problems)
 {
@@ -21,6 +26,8 @@ public sealed record OutputCheck(ValidatedReply? Reply, IReadOnlyList<string> Pr
 public static partial class OutputGuard
 {
     public const int MaxReplyLength = 1200;
+    public const int MaxQuickReplies = 4;
+    public const int MaxQuickReplyLength = 60;
     private const decimal PriceTolerance = 0.005m;
 
     private static readonly string[] LeakFragments = BuildLeakFragments();
@@ -91,7 +98,31 @@ public static partial class OutputGuard
             .Concat(combo?.Lines.Select(l => l.ItemId) ?? [])
             .Distinct()
             .ToList();
-        return new OutputCheck(new ValidatedReply(reply, itemIds, combo), []);
+        return new OutputCheck(new ValidatedReply(reply, itemIds, combo, FilterQuickReplies(output.QuickReplies)), []);
+    }
+
+    /// <summary>
+    /// Quick replies are customer-side text (they go through the input guardrail when tapped), so
+    /// a bad one is dropped instead of rejecting the whole answer.
+    /// </summary>
+    private static List<string> FilterQuickReplies(IEnumerable<string>? quickReplies)
+    {
+        var kept = new List<string>(MaxQuickReplies);
+        foreach (var raw in quickReplies ?? [])
+        {
+            var text = Regex.Replace(raw ?? "", @"\s+", " ").Trim();
+            if (text.Length is 0 or > MaxQuickReplyLength)
+                continue;
+            if (LinkOrMarkup().IsMatch(text) || LeaksPrompt(text))
+                continue;
+            if (kept.Any(k => Normalize(k) == Normalize(text)))
+                continue;
+
+            kept.Add(text);
+            if (kept.Count == MaxQuickReplies)
+                break;
+        }
+        return kept;
     }
 
     private static OutputCheck Rejected(string problem) => new(null, [problem]);
