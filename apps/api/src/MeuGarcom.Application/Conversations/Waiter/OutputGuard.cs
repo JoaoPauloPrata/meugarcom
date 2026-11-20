@@ -84,9 +84,11 @@ public static partial class OutputGuard
                 problems.Add($"The reply mentions {FixedReplies.FormatBrl(amount)}, which is not a price in the menu. Copy prices exactly and never compute totals.");
         }
 
-        // 4. Dietary attributes: never talk about an attribute that is not confirmed, unless the
-        //    reply sends the customer to the waiter. (The LLM judge from the docs is a follow-up.)
-        problems.AddRange(CheckDietary(normalizedReply, mentioned));
+        // 4. Dietary attributes: never talk about an attribute that is not confirmed, for an item
+        //    or for a whole category, unless the reply sends the customer to the waiter. Item names
+        //    are removed first: "Rigatoni Sem Glúten" is menu text, not a claim by the model.
+        //    (The LLM judge from the docs is a follow-up.)
+        problems.AddRange(CheckDietary(WithoutItemNames(normalizedReply, menu), mentioned, menu));
 
         // 5. Promises outside the scope (discounts, freebies, orders, prep time).
         problems.AddRange(CheckPromises(normalizedReply, menu));
@@ -131,17 +133,34 @@ public static partial class OutputGuard
     /// Items whose full name appears in the reply (word boundaries). A name contained in a longer
     /// matched name is ignored: "Moqueca de palmito" does not also mention "Moqueca".
     /// </summary>
-    private static IEnumerable<MenuItem> ItemsNamedIn(string normalizedReply, MenuSnapshot menu)
+    private static IEnumerable<MenuItem> ItemsNamedIn(string normalizedReply, MenuSnapshot menu) =>
+        NamedIn(normalizedReply, menu.Items, i => i.Name);
+
+    /// <summary>Categories whose full name appears in the reply, with the same rules as items.</summary>
+    private static IEnumerable<MenuGroup> GroupsNamedIn(string normalizedReply, MenuSnapshot menu) =>
+        NamedIn(normalizedReply, menu.Groups, g => g.Name);
+
+    private static IEnumerable<T> NamedIn<T>(string normalizedReply, IEnumerable<T> candidates, Func<T, string> name)
     {
-        var found = menu.Items
-            .Select(i => (Item: i, Name: Normalize(i.Name)))
-            .Where(x => x.Name.Length >= 4 && Regex.IsMatch(normalizedReply, $@"(?<![\p{{L}}\d]){Regex.Escape(x.Name)}(?![\p{{L}}\d])"))
+        var found = candidates
+            .Select(c => (Value: c, Name: Normalize(name(c))))
+            .Where(x => x.Name.Length >= 4 && WholeWords(x.Name).IsMatch(normalizedReply))
             .ToList();
 
         return found
             .Where(x => !found.Any(other => other.Name.Length > x.Name.Length && other.Name.Contains(x.Name)))
-            .Select(x => x.Item);
+            .Select(x => x.Value);
     }
+
+    private static string WithoutItemNames(string normalizedReply, MenuSnapshot menu) =>
+        menu.Items
+            .Select(i => Normalize(i.Name))
+            .Where(n => n.Length >= 4)
+            .OrderByDescending(n => n.Length)
+            .Aggregate(normalizedReply, (text, n) => WholeWords(n).Replace(text, " "));
+
+    private static Regex WholeWords(string normalizedName) =>
+        new($@"(?<![\p{{L}}\d]){Regex.Escape(normalizedName)}(?![\p{{L}}\d])");
 
     private static ComboSuggestion? BuildCombo(WaiterComboOutput output, MenuSnapshot menu, out string? problem)
     {
@@ -186,17 +205,31 @@ public static partial class OutputGuard
         return customerTexts.SelectMany(ExtractNumbers).Any(Near);
     }
 
-    private static IEnumerable<string> CheckDietary(string normalizedReply, IReadOnlyList<MenuItem> mentioned)
+    private static IEnumerable<string> CheckDietary(string claimText, IReadOnlyList<MenuItem> mentioned, MenuSnapshot menu)
     {
-        if (WaiterMention().IsMatch(normalizedReply))
+        if (WaiterMention().IsMatch(claimText))
             yield break;
 
-        if (VeganTerms().IsMatch(normalizedReply) && mentioned.FirstOrDefault(i => !i.IsVegan) is { } notVegan)
-            yield return $"The reply talks about vegan for \"{notVegan.Name}\", which is not confirmed vegan. Say it can't be confirmed from the menu and point to the waiter.";
-        if (LactoseTerms().IsMatch(normalizedReply) && mentioned.FirstOrDefault(i => !i.IsLactoseFree) is { } notLactoseFree)
-            yield return $"The reply talks about lactose for \"{notLactoseFree.Name}\", which is not confirmed lactose-free. Say it can't be confirmed from the menu and point to the waiter.";
-        if (GlutenTerms().IsMatch(normalizedReply) && mentioned.FirstOrDefault(i => !i.IsGlutenFree) is { } notGlutenFree)
-            yield return $"The reply talks about gluten for \"{notGlutenFree.Name}\", which is not confirmed gluten-free. Say it can't be confirmed from the menu and point to the waiter.";
+        var groups = GroupsNamedIn(claimText, menu).ToList();
+        var attributes = new (Regex Terms, Func<MenuItem, bool> IsConfirmed, string Label)[]
+        {
+            (VeganTerms(), i => i.IsVegan, "vegan"),
+            (LactoseTerms(), i => i.IsLactoseFree, "lactose-free"),
+            (GlutenTerms(), i => i.IsGlutenFree, "gluten-free"),
+        };
+
+        foreach (var (terms, isConfirmed, label) in attributes)
+        {
+            if (!terms.IsMatch(claimText))
+                continue;
+
+            if (mentioned.FirstOrDefault(i => !isConfirmed(i)) is { } item)
+                yield return $"The reply talks about {label} for \"{item.Name}\", which is not confirmed {label}. Say it can't be confirmed from the menu and point to the waiter.";
+
+            // Group replies cite no items: a category may only appear if one of its items is confirmed.
+            if (groups.FirstOrDefault(g => !g.Items.Any(isConfirmed)) is { } group)
+                yield return $"The reply mentions the category \"{group.Name}\" in a {label} answer, but no item in it is confirmed {label}. Use confirmedAttributeCounts and only mention categories with a count above zero.";
+        }
     }
 
     private static IEnumerable<string> CheckPromises(string normalizedReply, MenuSnapshot menu)
@@ -223,7 +256,7 @@ public static partial class OutputGuard
     private static bool LeaksPrompt(string reply)
     {
         var normalized = Normalize(reply);
-        if (normalized.Contains("menu_data") || normalized.Contains("referenceditemrefs") || normalized.Contains("confirmedattributes"))
+        if (normalized.Contains("menu_data") || normalized.Contains("referenceditemrefs") || normalized.Contains("confirmedattribute"))
             return true;
         return LeakFragments.Any(normalized.Contains);
     }

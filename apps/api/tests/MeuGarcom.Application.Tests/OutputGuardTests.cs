@@ -65,6 +65,40 @@ public class OutputGuardTests
     }
 
     [Fact]
+    public void Dietary_word_inside_an_item_name_is_not_a_claim()
+    {
+        var check = Check(
+            "Temos X-Cheese por R$ 32,00 e Torrada Sem Glúten por R$ 10,00.",
+            [TestMenu.RefOf(_menu, "X-Cheese"), TestMenu.RefOf(_menu, "Torrada Sem Glúten")]);
+
+        Assert.True(check.IsApproved);
+    }
+
+    [Fact]
+    public void Item_name_does_not_confirm_its_own_attribute()
+    {
+        Assert.False(Check("Sim, a Torrada Sem Glúten é sem glúten.").IsApproved);
+    }
+
+    [Fact]
+    public void Category_without_confirmed_items_in_a_dietary_group_reply_is_rejected()
+    {
+        Assert.False(Check("Temos opções sem glúten em pratos principais e sushi.").IsApproved);
+    }
+
+    [Fact]
+    public void Category_with_a_confirmed_item_in_a_dietary_group_reply_is_approved()
+    {
+        Assert.True(Check("Temos opções sem glúten em pratos principais. Quer que eu liste?").IsApproved);
+    }
+
+    [Fact]
+    public void Menu_data_carries_confirmed_attribute_counts_per_category()
+    {
+        Assert.Contains("\"confirmedAttributeCounts\":{\"vegan\":1,\"lactose_free\":1,\"gluten_free\":1}", _menu.DataJson);
+    }
+
+    [Fact]
     public void Budget_repeated_from_the_customer_is_allowed()
     {
         var check = Check("Para R$ 150 separei estas opções:", [TestMenu.RefOf(_menu, "Combinado 20 peças")], null, "combo de sushi para dois de 150 reais");
