@@ -20,6 +20,18 @@ export function Spinner({ label }) {
   )
 }
 
+/** Screen/section loading state: the logo flipping over, with an accessible label. */
+export function PageLoader({ label = 'Carregando', className = '' }) {
+  return (
+    <div className={`logo-loader ${className}`} role="status">
+      <span className="logo-loader__stage" aria-hidden="true">
+        <img src="/logo-icon.png" alt="" width="80" height="32" />
+      </span>
+      <span className="logo-loader__label">{label}…</span>
+    </div>
+  )
+}
+
 export function Alert({ kind = 'error', children }) {
   if (!children) return null
   const icon = kind === 'success' ? 'check' : kind === 'info' ? 'sparkles' : 'alert'

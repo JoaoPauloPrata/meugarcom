@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { api } from '../../lib/api'
 import { authErrorMessage, signInWithGoogle, useAuth } from '../../lib/auth'
 import Icon from '../../components/Icon'
-import { Alert, BrandLink, Field, GoogleIcon, NumberStepper, PasswordField, Spinner } from '../../components/ui'
+import { Alert, BrandLink, Field, GoogleIcon, NumberStepper, PageLoader, PasswordField, Spinner } from '../../components/ui'
 
 const STEPS = [
   { key: 'account', label: 'Sua conta' },
@@ -157,8 +157,8 @@ export default function Signup() {
 
   if (loading || checkingWorkspace) {
     return (
-      <div className="page-loading" role="status">
-        <Spinner label="Carregando" />
+      <div className="page-loading">
+        <PageLoader />
       </div>
     )
   }

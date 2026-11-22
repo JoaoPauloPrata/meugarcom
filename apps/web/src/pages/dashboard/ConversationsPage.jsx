@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { api } from '../../lib/api'
-import { Alert, Spinner } from '../../components/ui'
+import { Alert, PageLoader } from '../../components/ui'
 
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 
@@ -43,7 +43,7 @@ export default function ConversationsPage() {
         </div>
       </div>
       <Alert>{error}</Alert>
-      {!conversations && !error && <Spinner label="Carregando conversas" />}
+      {!conversations && !error && <PageLoader label="Carregando conversas" className="logo-loader--inline" />}
       {conversations?.length === 0 && (
         <div className="card empty">
           <h2>Nenhuma conversa ainda</h2>

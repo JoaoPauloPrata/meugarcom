@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './lib/auth.jsx'
+import { PageLoader } from './components/ui.jsx'
 import './styles.css'
 import './app.css'
 
@@ -20,9 +21,8 @@ const ChatPage = lazy(() => import('./pages/chat/ChatPage.jsx'))
 
 function PageFallback() {
   return (
-    <div className="page-loading" role="status">
-      <span className="spinner" aria-hidden="true" />
-      <span className="sr-only">Carregando…</span>
+    <div className="page-loading">
+      <PageLoader />
     </div>
   )
 }

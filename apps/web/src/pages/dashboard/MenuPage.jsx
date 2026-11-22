@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { DIETARY_LABELS, formatBRL, itemTags } from '../../lib/format'
 import Icon from '../../components/Icon'
-import { Alert, Dialog, Field, Spinner, Switch, useToast } from '../../components/ui'
+import { Alert, Dialog, Field, PageLoader, Spinner, Switch, useToast } from '../../components/ui'
 import ItemDrawer from './ItemDrawer'
 import ImportDialog from './ImportDialog'
 
@@ -61,7 +61,7 @@ export default function MenuPage() {
         <div className="page-head">
           <h1>Cardápio</h1>
         </div>
-        {error ? <Alert>{error}</Alert> : <Spinner label="Carregando cardápio" />}
+        {error ? <Alert>{error}</Alert> : <PageLoader label="Carregando cardápio" className="logo-loader--inline" />}
       </>
     )
   }
