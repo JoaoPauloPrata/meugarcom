@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { api } from '../../lib/api'
 import Icon from '../../components/Icon'
-import { Alert, Spinner } from '../../components/ui'
+import { Alert, PageLoader } from '../../components/ui'
 
 const DIETARY = {
   lactose_free: 'Sem lactose',
@@ -35,7 +35,7 @@ export default function Overview() {
         </div>
       </div>
       <Alert>{error}</Alert>
-      {!data && !error && <Spinner label="Carregando indicadores" />}
+      {!data && !error && <PageLoader label="Carregando indicadores" className="logo-loader--inline" />}
       {data && (
         <>
           {(data.menuItems === 0 || data.tables === 0 || data.questionsToday === 0) && (

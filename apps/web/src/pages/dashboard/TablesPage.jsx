@@ -4,7 +4,7 @@ import QRCode from 'qrcode'
 import { api } from '../../lib/api'
 import { chatUrl } from '../../lib/format'
 import Icon from '../../components/Icon'
-import { Alert, Dialog, NumberStepper, Spinner, useToast } from '../../components/ui'
+import { Alert, Dialog, NumberStepper, PageLoader, Spinner, useToast } from '../../components/ui'
 
 const QR_OPTIONS = { margin: 1, width: 480, errorCorrectionLevel: 'M', color: { dark: '#2a2d31', light: '#ffffff' } }
 
@@ -83,7 +83,7 @@ export default function TablesPage() {
       <Alert>{error}</Alert>
 
       {!data ? (
-        !error && <Spinner label="Carregando mesas" />
+        !error && <PageLoader label="Carregando mesas" className="logo-loader--inline" />
       ) : (
         <>
           <UnitLinkCard code={data.unitPublicCode} onCopy={copy} />

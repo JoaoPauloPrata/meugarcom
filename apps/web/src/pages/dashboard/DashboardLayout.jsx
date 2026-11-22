@@ -3,7 +3,7 @@ import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-route
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import Icon from '../../components/Icon'
-import { Alert, Spinner } from '../../components/ui'
+import { Alert, PageLoader } from '../../components/ui'
 
 const NAV = [
   { to: '/dashboard', label: 'Visão geral', icon: 'home', end: true },
@@ -44,7 +44,7 @@ export default function DashboardLayout() {
 
   if (!workspace) {
     return (
-      <div className="page-loading" role="status">
+      <div className="page-loading">
         {error ? (
           <div style={{ maxWidth: 420, padding: 16 }}>
             <Alert>{error}</Alert>
@@ -53,7 +53,7 @@ export default function DashboardLayout() {
             </button>
           </div>
         ) : (
-          <Spinner label="Carregando o painel" />
+          <PageLoader label="Carregando o painel" />
         )}
       </div>
     )

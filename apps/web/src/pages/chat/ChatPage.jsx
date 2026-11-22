@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { publicApi } from '../../lib/api'
 import { DIETARY_LABELS, formatBRL, greetingForNow, itemTags } from '../../lib/format'
 import Icon from '../../components/Icon'
-import { Dialog, Spinner } from '../../components/ui'
+import { Dialog, PageLoader, Spinner } from '../../components/ui'
 
 const MAX_LENGTH = 500
 
@@ -112,8 +112,8 @@ export default function ChatPage() {
     return (
       <div className="chat-page">
         <div className="chat-app">
-          <div className="chat-state" role="status">
-            <Spinner label="Abrindo o chat" />
+          <div className="chat-state">
+            <PageLoader label="Abrindo o chat" />
           </div>
         </div>
       </div>
@@ -412,7 +412,7 @@ function MenuSheet({ code, onClose }) {
   return (
     <Dialog title="Cardápio" variant="sheet" onClose={onClose}>
       {error && <p className="bubble bubble--error">{error}</p>}
-      {!menu && !error && <Spinner label="Carregando cardápio" />}
+      {!menu && !error && <PageLoader label="Carregando cardápio" className="logo-loader--inline" />}
       {menu && categories.length === 0 && <p>O cardápio ainda não foi publicado.</p>}
       {categories.length > 0 && (
         <>

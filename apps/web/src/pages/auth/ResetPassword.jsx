@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { authErrorMessage, useAuth } from '../../lib/auth'
-import { Alert, PasswordField, Spinner } from '../../components/ui'
+import { Alert, PageLoader, PasswordField, Spinner } from '../../components/ui'
 import AuthShell from './AuthShell'
 
 export default function ResetPassword() {
@@ -38,7 +38,7 @@ export default function ResetPassword() {
     <AuthShell>
       <h1>Nova senha</h1>
       {loading ? (
-        <Spinner label="Carregando" />
+        <PageLoader className="logo-loader--inline" />
       ) : !session ? (
         <>
           <Alert>Este link é inválido ou expirou. Peça um novo link de recuperação.</Alert>
